@@ -49,13 +49,13 @@ export default function App() {
 
         if (!otherUser) {
           // Other user hasn't logged in yet — create a placeholder
-          const isBro1 = currentUser.username === 'bro1'
+          const isDani = currentUser.username === 'dani'
           otherUser = {
             uid: 'placeholder',
-            name: isBro1 ? 'Hermano 2' : 'Hermano 1',
-            username: isBro1 ? 'bro2' : 'bro1',
-            color: isBro1 ? 'orange' : 'cyan',
-            emoji: isBro1 ? '🎨' : '💻',
+            name: isDani ? 'Eric' : 'Dani',
+            username: isDani ? 'eric' : 'dani',
+            color: isDani ? 'orange' : 'cyan',
+            emoji: isDani ? '🎨' : '💻',
           }
         }
 

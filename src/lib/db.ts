@@ -80,18 +80,18 @@ export async function createUserProfileFromEmail(
   uid: string,
   email: string,
 ): Promise<UserProfile> {
-  const isBro1 = email.startsWith('bro1')
+  const isDani = email.startsWith('dani')
 
-  const profile: Omit<UserProfile, 'uid'> = isBro1
+  const profile: Omit<UserProfile, 'uid'> = isDani
     ? {
-        name: 'Hermano 1',
-        username: 'bro1',
+        name: 'Dani',
+        username: 'dani',
         color: 'cyan',
         emoji: '💻',
       }
     : {
-        name: 'Hermano 2',
-        username: 'bro2',
+        name: 'Eric',
+        username: 'eric',
         color: 'orange',
         emoji: '🎨',
       }
