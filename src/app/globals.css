@@ -1,0 +1,236 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+:root {
+  --color-cyan: #00ffff;
+  --color-orange: #ff6b00;
+  --color-green: #00ff88;
+  --color-red: #ff0044;
+  --bg-dark: #0a0a0a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #0a0a0a;
+  color: #ffffff;
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  min-height: 100vh;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #111111;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333333;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555555;
+}
+
+/* Neon glow text */
+.neon-cyan {
+  color: #00ffff;
+  text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 20px #00ffff;
+}
+
+.neon-orange {
+  color: #ff6b00;
+  text-shadow: 0 0 5px #ff6b00, 0 0 10px #ff6b00, 0 0 20px #ff6b00;
+}
+
+.neon-green {
+  color: #00ff88;
+  text-shadow: 0 0 5px #00ff88, 0 0 10px #00ff88, 0 0 20px #00ff88;
+}
+
+.neon-red {
+  color: #ff0044;
+  text-shadow: 0 0 5px #ff0044, 0 0 10px #ff0044;
+}
+
+/* Neon borders */
+.border-neon-cyan {
+  border-color: #00ffff;
+  box-shadow: 0 0 5px #00ffff, inset 0 0 5px rgba(0, 255, 255, 0.05);
+}
+
+.border-neon-orange {
+  border-color: #ff6b00;
+  box-shadow: 0 0 5px #ff6b00, inset 0 0 5px rgba(255, 107, 0, 0.05);
+}
+
+/* Flicker animation */
+@keyframes flicker {
+  0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% {
+    opacity: 1;
+  }
+  20%, 21.999%, 63%, 63.999%, 65%, 69.999% {
+    opacity: 0.4;
+  }
+}
+
+.animate-flicker {
+  animation: flicker 4s linear infinite;
+}
+
+/* Pulse animation */
+@keyframes neonPulse {
+  0%, 100% {
+    text-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+  }
+  50% {
+    text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 40px currentColor;
+  }
+}
+
+.animate-neon-pulse {
+  animation: neonPulse 2s ease-in-out infinite;
+}
+
+/* Receipt tape styling */
+.receipt-tape {
+  background: #0f0f0f;
+  border: 1px dashed #333;
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+}
+
+.receipt-divider {
+  border-top: 1px dashed #333;
+  margin: 8px 0;
+}
+
+.receipt-double-divider {
+  border-top: 3px double #444;
+  margin: 8px 0;
+}
+
+/* Scanline overlay effect */
+.scanlines::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.05) 2px,
+    rgba(0, 0, 0, 0.05) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Card glow effects */
+.card-glow-cyan {
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.15), 0 0 30px rgba(0, 255, 255, 0.05);
+}
+
+.card-glow-orange {
+  box-shadow: 0 0 15px rgba(255, 107, 0, 0.15), 0 0 30px rgba(255, 107, 0, 0.05);
+}
+
+.card-glow-cyan-active {
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), 0 0 40px rgba(0, 255, 255, 0.1);
+}
+
+.card-glow-orange-active {
+  box-shadow: 0 0 20px rgba(255, 107, 0, 0.3), 0 0 40px rgba(255, 107, 0, 0.1);
+}
+
+/* Input styles */
+.input-dark {
+  background: #111;
+  border: 1px solid #333;
+  color: #fff;
+  font-family: 'Share Tech Mono', monospace;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-dark:focus {
+  outline: none;
+  border-color: #00ffff;
+  box-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+}
+
+/* Button styles */
+.btn-neon-cyan {
+  background: transparent;
+  border: 1px solid #00ffff;
+  color: #00ffff;
+  font-family: 'Share Tech Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: all 0.2s;
+}
+
+.btn-neon-cyan:hover {
+  background: rgba(0, 255, 255, 0.1);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
+}
+
+.btn-neon-orange {
+  background: transparent;
+  border: 1px solid #ff6b00;
+  color: #ff6b00;
+  font-family: 'Share Tech Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: all 0.2s;
+}
+
+.btn-neon-orange:hover {
+  background: rgba(255, 107, 0, 0.1);
+  box-shadow: 0 0 10px rgba(255, 107, 0, 0.4);
+}
+
+/* Category badge */
+.category-badge {
+  font-size: 0.6rem;
+  padding: 1px 4px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 1px solid currentColor;
+}
+
+/* Loading spinner */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #333;
+  border-top-color: #00ffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Glitch effect for header */
+@keyframes glitch {
+  0% { clip-path: inset(40% 0 61% 0); transform: skew(0.3deg); }
+  20% { clip-path: inset(92% 0 1% 0); transform: skew(0.1deg); }
+  40% { clip-path: inset(43% 0 1% 0); transform: skew(0.5deg); }
+  60% { clip-path: inset(25% 0 58% 0); transform: skew(0.4deg); }
+  80% { clip-path: inset(54% 0 7% 0); transform: skew(0.2deg); }
+  100% { clip-path: inset(58% 0 43% 0); transform: skew(0.3deg); }
+}
