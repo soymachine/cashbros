@@ -1,88 +1,63 @@
-export type UserBalance = {
-  userId: string
-  name: string
-  username: string
-  color: string
-  emoji: string
-  totalPaid: number
-}
-
-export type BalanceResult = {
-  user1: UserBalance
-  user2: UserBalance
-  netBalance: number // positive = user1 is owed by user2
-  owingUser: UserBalance | null // who owes
-  owedUser: UserBalance | null // who is owed
-  amount: number // absolute amount owed
-  isEven: boolean
-}
-
-export type TransactionForBalance = {
-  id: string
-  amount: number
-  type: string
-  payerId: string
-}
+import type { Transaction, UserProfile, BalanceResult } from '../types'
 
 export function computeBalance(
-  user1: UserBalance,
-  user2: UserBalance,
-  transactions: TransactionForBalance[]
+  transactions: Transaction[],
+  user1: UserProfile,  // bro1
+  user2: UserProfile,  // bro2
 ): BalanceResult {
   let netBalance = 0
-  let user1TotalPaid = 0
-  let user2TotalPaid = 0
+  let totalPaidByUser1 = 0
+  let totalPaidByUser2 = 0
 
   for (const tx of transactions) {
     if (tx.type === 'expense') {
-      if (tx.payerId === user1.userId) {
+      if (tx.payerId === user1.uid) {
+        // user1 paid → user2 owes half → net increases
         netBalance += tx.amount / 2
-        user1TotalPaid += tx.amount
-      } else if (tx.payerId === user2.userId) {
+        totalPaidByUser1 += tx.amount
+      } else if (tx.payerId === user2.uid) {
+        // user2 paid → user1 owes half → net decreases
         netBalance -= tx.amount / 2
-        user2TotalPaid += tx.amount
+        totalPaidByUser2 += tx.amount
       }
     } else if (tx.type === 'settlement') {
-      if (tx.payerId === user1.userId) {
-        // user1 pays user2
+      if (tx.payerId === user1.uid) {
+        // user1 pays user2 → user1 reduces what user2 owes → net decreases
         netBalance -= tx.amount
-        user1TotalPaid += tx.amount
-      } else if (tx.payerId === user2.userId) {
-        // user2 pays user1
+      } else if (tx.payerId === user2.uid) {
+        // user2 pays user1 → user2 reduces what user1 owes → net increases
         netBalance += tx.amount
-        user2TotalPaid += tx.amount
       }
     }
   }
 
-  const u1 = { ...user1, totalPaid: user1TotalPaid }
-  const u2 = { ...user2, totalPaid: user2TotalPaid }
+  const absAmount = Math.abs(netBalance)
+  const isEven = absAmount < 0.01
 
-  const amount = Math.abs(netBalance)
-  const isEven = amount < 0.01
-
-  let owingUser: UserBalance | null = null
-  let owedUser: UserBalance | null = null
+  let owingUser: UserProfile | null = null
+  let owedUser: UserProfile | null = null
 
   if (!isEven) {
     if (netBalance > 0) {
-      // user1 is owed by user2 → user2 owes
-      owingUser = u2
-      owedUser = u1
+      // user2 owes user1
+      owingUser = user2
+      owedUser = user1
     } else {
-      // user2 is owed by user1 → user1 owes
-      owingUser = u1
-      owedUser = u2
+      // user1 owes user2
+      owingUser = user1
+      owedUser = user2
     }
   }
 
   return {
-    user1: u1,
-    user2: u2,
+    user1,
+    user2,
     netBalance,
     owingUser,
     owedUser,
-    amount,
+    amount: absAmount,
     isEven,
+    totalPaidByUser1,
+    totalPaidByUser2,
   }
 }

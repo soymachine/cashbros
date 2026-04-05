@@ -1,58 +1,60 @@
 import type { Config } from 'tailwindcss'
 
-const config: Config = {
+export default {
   darkMode: 'class',
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './index.html',
+    './src/**/*.{ts,tsx}',
   ],
   theme: {
     extend: {
       fontFamily: {
-        mono: ['Share Tech Mono', 'Courier New', 'monospace'],
+        mono: ['"Share Tech Mono"', 'monospace'],
       },
       colors: {
-        cyan: {
-          neon: '#00ffff',
+        'neon-cyan': '#00ffff',
+        'neon-orange': '#ff6b00',
+        'neon-green': '#00ff41',
+      },
+      keyframes: {
+        flicker: {
+          '0%, 19%, 21%, 23%, 25%, 54%, 56%, 100%': {
+            textShadow: '0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff',
+          },
+          '20%, 24%, 55%': {
+            textShadow: 'none',
+          },
         },
-        orange: {
-          neon: '#ff6b00',
+        'glow-pulse': {
+          '0%, 100%': {
+            textShadow: '0 0 10px currentColor, 0 0 20px currentColor',
+            opacity: '1',
+          },
+          '50%': {
+            textShadow: '0 0 20px currentColor, 0 0 40px currentColor, 0 0 60px currentColor',
+            opacity: '0.9',
+          },
+        },
+        'border-pulse': {
+          '0%, 100%': {
+            boxShadow: '0 0 5px currentColor, 0 0 10px currentColor',
+          },
+          '50%': {
+            boxShadow: '0 0 15px currentColor, 0 0 30px currentColor',
+          },
+        },
+        'slide-in': {
+          '0%': { transform: 'translateY(-10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
         },
       },
       animation: {
         flicker: 'flicker 3s linear infinite',
-        'pulse-slow': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'glow-cyan': 'glowCyan 2s ease-in-out infinite alternate',
-        'glow-orange': 'glowOrange 2s ease-in-out infinite alternate',
-      },
-      keyframes: {
-        flicker: {
-          '0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100%': {
-            opacity: '1',
-          },
-          '20%, 21.999%, 63%, 63.999%, 65%, 69.999%': {
-            opacity: '0.4',
-          },
-        },
-        glowCyan: {
-          '0%': { textShadow: '0 0 5px #00ffff, 0 0 10px #00ffff' },
-          '100%': { textShadow: '0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff' },
-        },
-        glowOrange: {
-          '0%': { textShadow: '0 0 5px #ff6b00, 0 0 10px #ff6b00' },
-          '100%': { textShadow: '0 0 10px #ff6b00, 0 0 20px #ff6b00, 0 0 40px #ff6b00' },
-        },
-      },
-      boxShadow: {
-        'neon-cyan': '0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 20px #00ffff',
-        'neon-orange': '0 0 5px #ff6b00, 0 0 10px #ff6b00, 0 0 20px #ff6b00',
-        'neon-green': '0 0 5px #00ff88, 0 0 10px #00ff88, 0 0 20px #00ff88',
-        'neon-red': '0 0 5px #ff0044, 0 0 10px #ff0044, 0 0 20px #ff0044',
+        'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
+        'border-pulse': 'border-pulse 2s ease-in-out infinite',
+        'slide-in': 'slide-in 0.2s ease-out',
       },
     },
   },
   plugins: [],
-}
-
-export default config
+} satisfies Config
