@@ -2,179 +2,88 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom font for entire app */
+:root {
+  --bg: #09090b;
+  --surface: #111118;
+  --surface-2: #18181f;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-hover: rgba(255, 255, 255, 0.14);
+  --text: #e2e8f0;
+  --text-2: #94a3b8;
+  --text-3: #475569;
+  --cyan: #22d3ee;
+  --amber: #f59e0b;
+  --green: #4ade80;
+  --red: #f87171;
+}
+
 * {
+  font-family: 'Inter', system-ui, sans-serif;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Receipt section keeps monospace */
+.font-receipt {
   font-family: 'Share Tech Mono', monospace;
 }
 
-/* Dark scrollbar */
+/* Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #00ffff33;
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #00ffff66;
+  background: rgba(255, 255, 255, 0.18);
 }
 
-/* Neon glow text classes */
-.neon-cyan {
-  color: #00ffff;
-  text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+/* Balance update: subtle fade-in when value changes */
+@keyframes balance-update {
+  0%   { opacity: 0.3; transform: translateY(4px); }
+  100% { opacity: 1;   transform: translateY(0); }
+}
+.animate-balance-update {
+  animation: balance-update 0.35s ease-out;
 }
 
-.neon-orange {
-  color: #ff6b00;
-  text-shadow: 0 0 10px #ff6b00, 0 0 20px #ff6b00;
-}
-
-.neon-green {
-  color: #00ff41;
-  text-shadow: 0 0 10px #00ff41, 0 0 20px #00ff41;
-}
-
-.neon-red {
-  color: #ff0040;
-  text-shadow: 0 0 10px #ff0040, 0 0 20px #ff0040;
-}
-
-/* Neon border classes */
-.neon-border-cyan {
-  border-color: #00ffff;
-  box-shadow: 0 0 10px #00ffff, inset 0 0 10px rgba(0, 255, 255, 0.05);
-}
-
-.neon-border-orange {
-  border-color: #ff6b00;
-  box-shadow: 0 0 10px #ff6b00, inset 0 0 10px rgba(255, 107, 0, 0.05);
-}
-
-.neon-border-green {
-  border-color: #00ff41;
-  box-shadow: 0 0 10px #00ff41, inset 0 0 10px rgba(0, 255, 65, 0.05);
-}
-
-/* Background grid pattern */
-.bg-grid {
-  background-color: #050505;
-  background-image:
-    linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
-}
-
-/* Receipt styling */
-.receipt-dashed {
-  border-top: 2px dashed #333;
-}
-
-.receipt-dashed-light {
-  border-top: 1px dashed #222;
-}
-
-/* Flicker animation for neon titles */
-@keyframes flicker {
-  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
-    text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff;
-  }
-  20%, 24%, 55% {
-    text-shadow: none;
-    opacity: 0.8;
-  }
-}
-
-@keyframes glow-pulse {
-  0%, 100% {
-    text-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
-    opacity: 1;
-  }
-  50% {
-    text-shadow: 0 0 20px currentColor, 0 0 40px currentColor, 0 0 60px currentColor;
-    opacity: 0.9;
-  }
-}
-
-@keyframes border-pulse {
-  0%, 100% {
-    box-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
-  }
-  50% {
-    box-shadow: 0 0 15px currentColor, 0 0 30px currentColor;
-  }
-}
-
+/* Slide in for notifications */
 @keyframes slide-in {
-  0% { transform: translateY(-10px); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
+  0%   { opacity: 0; transform: translateY(-6px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
-
-@keyframes scan-line {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100vh); }
-}
-
-.animate-flicker {
-  animation: flicker 4s linear infinite;
-}
-
-.animate-glow-pulse {
-  animation: glow-pulse 2s ease-in-out infinite;
-}
-
-.animate-border-pulse {
-  animation: border-pulse 2s ease-in-out infinite;
-}
-
 .animate-slide-in {
   animation: slide-in 0.2s ease-out;
 }
 
-/* Terminal cursor blink */
-@keyframes cursor-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-.cursor-blink::after {
-  content: '_';
-  animation: cursor-blink 1s step-end infinite;
-}
-
-/* Input styling */
-input, select {
-  background-color: #0d0d0d !important;
-  color: #e0e0e0;
-}
-
-input::placeholder {
-  color: #444;
-}
-
-input:focus, select:focus {
+/* Input base */
+input[type='text'],
+input[type='email'],
+input[type='password'],
+input[type='number'] {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  width: 100%;
+  transition: border-color 0.15s;
   outline: none;
 }
-
-/* Scanline overlay effect */
-.scanlines::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.1) 2px,
-    rgba(0, 0, 0, 0.1) 4px
-  );
-  pointer-events: none;
-  z-index: 1;
+input:focus {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+input::placeholder {
+  color: var(--text-3);
 }

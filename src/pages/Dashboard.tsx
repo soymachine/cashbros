@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { getTransactions, addTransaction, deleteTransaction } from '../lib/db'
 import { computeBalance } from '../lib/balance'
+import { Select } from '../components/Select'
 import type { UserProfile, Transaction } from '../types'
 
 interface DashboardProps {
@@ -10,24 +11,14 @@ interface DashboardProps {
 }
 
 const CATEGORIES = [
-  { value: 'general', label: 'General' },
-  { value: 'software', label: 'Software' },
-  { value: 'infraestructura', label: 'Infraestructura' },
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'diseño', label: 'Diseño' },
-  { value: 'reunión', label: 'Reunión' },
-  { value: 'otro', label: 'Otro' },
+  { value: 'general',        label: '📦 General' },
+  { value: 'software',       label: '💾 Software' },
+  { value: 'infraestructura',label: '🔧 Infraestructura' },
+  { value: 'marketing',      label: '📣 Marketing' },
+  { value: 'diseño',         label: '🎨 Diseño' },
+  { value: 'reunión',        label: '🤝 Reunión' },
+  { value: 'otro',           label: '❓ Otro' },
 ]
-
-const CATEGORY_EMOJI: Record<string, string> = {
-  general: '📦',
-  software: '💾',
-  infraestructura: '🔧',
-  marketing: '📣',
-  diseño: '🎨',
-  reunión: '🤝',
-  otro: '❓',
-}
 
 function formatDate(date: Date): string {
   return date.toLocaleDateString('es-ES', {
@@ -50,12 +41,11 @@ export default function Dashboard({ currentUser, otherUser, onLogout }: Dashboar
   const [type, setType] = useState<'expense' | 'settlement'>('expense')
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState('')
-  const [hoveredTx, setHoveredTx] = useState<string | null>(null)
   const [deletingTx, setDeletingTx] = useState<string | null>(null)
 
-  // Determine user1 (bro1) and user2 (bro2) for balance computation
-  const user1 = currentUser.username === 'bro1' ? currentUser : otherUser
-  const user2 = currentUser.username === 'bro2' ? currentUser : otherUser
+  // user1 is always cyan (Dani), user2 always amber (Eric) — for consistent balance sign
+  const user1 = currentUser.color === 'cyan' ? currentUser : otherUser
+  const user2 = currentUser.color === 'orange' ? currentUser : otherUser
 
   useEffect(() => {
     const unsubscribe = getTransactions((txs) => setTransactions(txs))
@@ -73,7 +63,6 @@ export default function Dashboard({ currentUser, otherUser, onLogout }: Dashboar
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setFormError('')
-
     const amountNum = parseFloat(amount)
     if (isNaN(amountNum) || amountNum <= 0) {
       setFormError('Introduce una cantidad válida mayor que 0.')
@@ -83,7 +72,6 @@ export default function Dashboard({ currentUser, otherUser, onLogout }: Dashboar
       setFormError('Introduce una descripción.')
       return
     }
-
     setSubmitting(true)
     try {
       await addTransaction({
@@ -118,208 +106,201 @@ export default function Dashboard({ currentUser, otherUser, onLogout }: Dashboar
     }
   }
 
-  const currentColor = currentUser.color === 'cyan' ? '#00ffff' : '#ff6b00'
+  const accentColor = currentUser.color === 'cyan' ? 'var(--cyan)' : 'var(--amber)'
 
   return (
-    <div className="min-h-screen bg-grid text-gray-200 flex flex-col">
-      {/* ── Header ── */}
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
+      {/* Header */}
       <header
-        className="flex items-center justify-between px-4 py-3 border-b border-gray-800"
-        style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '14px 20px',
+          borderBottom: '1px solid var(--border)',
+          background: 'rgba(9,9,11,0.8)',
+          backdropFilter: 'blur(10px)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+        }}
       >
-        <div
-          className="text-sm font-bold tracking-widest"
-          style={{ color: '#00ffff', textShadow: '0 0 10px #00ffff' }}
-        >
-          💸 CASHBROS
-        </div>
-        <div className="text-sm tracking-wider" style={{ color: currentColor }}>
-          {currentUser.emoji} {currentUser.name.toUpperCase()}
-        </div>
+        <span style={{ fontSize: '16px', fontWeight: '700', letterSpacing: '-0.3px' }}>
+          💸 CashBros
+        </span>
+        <span style={{ fontSize: '13px', color: accentColor, fontWeight: '500' }}>
+          {currentUser.emoji} {currentUser.name}
+        </span>
         <button
           onClick={onLogout}
-          className="text-xs text-gray-600 hover:text-gray-400 border border-gray-800 hover:border-gray-600 px-2 py-1 tracking-widest transition-colors"
+          style={{
+            fontSize: '13px',
+            color: 'var(--text-3)',
+            background: 'transparent',
+            border: '1px solid var(--border)',
+            borderRadius: '6px',
+            padding: '5px 12px',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-2)'; e.currentTarget.style.borderColor = 'var(--border-hover)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-3)'; e.currentTarget.style.borderColor = 'var(--border)' }}
         >
-          SALIR
+          Salir
         </button>
       </header>
 
-      <div className="flex-1 max-w-2xl mx-auto w-full px-4 py-6 space-y-6">
-        {/* ── Balance Section ── */}
+      <div style={{ maxWidth: '600px', margin: '0 auto', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+        {/* Balance Card */}
         <div
-          className="border p-6 text-center relative"
+          key={transactions.length}
+          className="animate-balance-update"
           style={{
-            background: 'linear-gradient(135deg, #080808 0%, #0d0d10 100%)',
-            borderColor: '#1a1a1a',
-            boxShadow: balance.isEven
-              ? '0 0 20px rgba(0,255,65,0.1)'
-              : currentUserOwes
-              ? '0 0 20px rgba(255,0,64,0.1)'
-              : '0 0 20px rgba(0,255,65,0.1)',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: '16px',
+            padding: '28px 24px',
+            textAlign: 'center',
           }}
         >
-          {/* Corner decorations */}
-          <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-gray-700" />
-          <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-gray-700" />
-          <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-gray-700" />
-          <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-gray-700" />
-
-          <div className="text-xs text-gray-600 tracking-widest mb-3 uppercase">
-            — Estado de la Balanza —
-          </div>
+          <p style={{ fontSize: '11px', fontWeight: '600', letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: '16px' }}>
+            Balanza
+          </p>
 
           {balance.isEven ? (
-            <div>
-              <div
-                className="text-3xl font-bold tracking-widest animate-glow-pulse"
-                style={{ color: '#00ff41', textShadow: '0 0 10px #00ff41, 0 0 20px #00ff41' }}
-              >
-                ⚖️ EQUILIBRIO PERFECTO
-              </div>
-              <div className="text-xs text-gray-600 mt-2 tracking-wider">
+            <>
+              <div style={{ fontSize: '36px', marginBottom: '8px' }}>⚖️</div>
+              <p style={{ fontSize: '22px', fontWeight: '700', color: 'var(--green)', letterSpacing: '-0.5px' }}>
+                Equilibrio perfecto
+              </p>
+              <p style={{ fontSize: '13px', color: 'var(--text-3)', marginTop: '6px' }}>
                 Las cuentas están al día
-              </div>
-            </div>
+              </p>
+            </>
           ) : (
-            <div>
-              <div className="text-xs text-gray-500 tracking-widest mb-2">
-                {balance.owingUser?.emoji} {balance.owingUser?.name.toUpperCase()} DEBE A{' '}
-                {balance.owedUser?.emoji} {balance.owedUser?.name.toUpperCase()}
-              </div>
-              <div
-                className="text-6xl font-bold tracking-wider animate-glow-pulse"
+            <>
+              <p style={{ fontSize: '13px', color: 'var(--text-3)', marginBottom: '10px' }}>
+                {balance.owingUser?.emoji} <strong style={{ color: 'var(--text-2)' }}>{balance.owingUser?.name}</strong>
+                {' '}debe a{' '}
+                {balance.owedUser?.emoji} <strong style={{ color: 'var(--text-2)' }}>{balance.owedUser?.name}</strong>
+              </p>
+              <p
                 style={{
-                  color: currentUserOwes ? '#ff0040' : currentUserIsOwed ? '#00ff41' : '#e0e0e0',
-                  textShadow: currentUserOwes
-                    ? '0 0 10px #ff0040, 0 0 20px #ff0040'
-                    : '0 0 10px #00ff41, 0 0 20px #00ff41',
+                  fontSize: '56px',
+                  fontWeight: '700',
+                  letterSpacing: '-2px',
+                  lineHeight: 1,
+                  color: currentUserOwes ? 'var(--red)' : currentUserIsOwed ? 'var(--green)' : 'var(--text)',
+                  marginBottom: '10px',
                 }}
               >
                 {formatEuro(balance.amount)}
-              </div>
-              <div className="text-xs text-gray-500 mt-2 tracking-wider">
+              </p>
+              <p style={{ fontSize: '13px', color: 'var(--text-3)' }}>
                 {currentUserOwes
-                  ? `⚠ Debes ${formatEuro(balance.amount)} a ${balance.owedUser?.name}`
+                  ? `Le debes ${formatEuro(balance.amount)} a ${balance.owedUser?.name}`
                   : currentUserIsOwed
-                  ? `✓ ${balance.owingUser?.name} te debe ${formatEuro(balance.amount)}`
-                  : 'Ver balance arriba'}
-              </div>
-            </div>
+                  ? `${balance.owingUser?.name} te debe ${formatEuro(balance.amount)}`
+                  : ''}
+              </p>
+            </>
           )}
         </div>
 
-        {/* ── Player Cards ── */}
-        <div className="grid grid-cols-2 gap-3 items-center">
-          {/* User 1 card (bro1 / cyan) */}
-          <div
-            className="border p-4 text-center relative"
-            style={{
-              borderColor: user1.uid === currentUser.uid ? '#00ffff55' : '#00ffff1a',
-              background: user1.uid === currentUser.uid
-                ? 'rgba(0,255,255,0.04)'
-                : 'rgba(0,255,255,0.01)',
-              boxShadow: user1.uid === currentUser.uid
-                ? '0 0 15px rgba(0,255,255,0.15)'
-                : '0 0 5px rgba(0,255,255,0.05)',
-              transition: 'all 0.3s',
-            }}
-          >
-            {user1.uid === currentUser.uid && (
-              <div className="absolute -top-2 left-1/2 -translate-x-1/2 text-xs text-cyan-400 bg-black px-1 tracking-widest">
-                TÚ
-              </div>
-            )}
-            <div className="text-3xl mb-1">{user1.emoji}</div>
-            <div className="text-xs text-cyan-400 tracking-widest">{user1.name.toUpperCase()}</div>
-            <div className="text-sm font-bold mt-1" style={{ color: '#00ffff' }}>
-              {formatEuro(balance.totalPaidByUser1)}
-            </div>
-            <div className="text-xs text-gray-600 mt-0.5">total pagado</div>
+        {/* Player Cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '10px', alignItems: 'center' }}>
+          {/* user1 - Dani */}
+          <PlayerCard
+            user={user1}
+            totalPaid={balance.totalPaidByUser1}
+            isCurrentUser={user1.uid === currentUser.uid}
+            color="var(--cyan)"
+          />
+
+          <div style={{ textAlign: 'center', color: 'var(--text-3)', fontSize: '18px', fontWeight: '300' }}>
+            ⇄
           </div>
 
-          <div className="text-center text-gray-600 text-xl font-bold">⇄</div>
-
-          {/* User 2 card (bro2 / orange) — spans only 1 col, but grid is 2-col */}
-          <div
-            className="border p-4 text-center relative col-start-2 row-start-1"
-            style={{
-              borderColor: user2.uid === currentUser.uid ? '#ff6b0055' : '#ff6b001a',
-              background: user2.uid === currentUser.uid
-                ? 'rgba(255,107,0,0.04)'
-                : 'rgba(255,107,0,0.01)',
-              boxShadow: user2.uid === currentUser.uid
-                ? '0 0 15px rgba(255,107,0,0.15)'
-                : '0 0 5px rgba(255,107,0,0.05)',
-              transition: 'all 0.3s',
-            }}
-          >
-            {user2.uid === currentUser.uid && (
-              <div className="absolute -top-2 left-1/2 -translate-x-1/2 text-xs text-orange-400 bg-black px-1 tracking-widest">
-                TÚ
-              </div>
-            )}
-            <div className="text-3xl mb-1">{user2.emoji}</div>
-            <div className="text-xs text-orange-400 tracking-widest">{user2.name.toUpperCase()}</div>
-            <div className="text-sm font-bold mt-1" style={{ color: '#ff6b00' }}>
-              {formatEuro(balance.totalPaidByUser2)}
-            </div>
-            <div className="text-xs text-gray-600 mt-0.5">total pagado</div>
-          </div>
+          {/* user2 - Eric */}
+          <PlayerCard
+            user={user2}
+            totalPaid={balance.totalPaidByUser2}
+            isCurrentUser={user2.uid === currentUser.uid}
+            color="var(--amber)"
+          />
         </div>
 
-        {/* ── Add Transaction Form ── */}
+        {/* Add Transaction Form */}
         <div
-          className="border border-gray-800 p-4"
-          style={{ background: 'rgba(5,5,5,0.9)' }}
+          style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: '16px',
+            padding: '20px',
+          }}
         >
-          <div className="text-xs text-gray-500 tracking-widest mb-4 uppercase">
-            &gt; Nueva Transacción
-          </div>
+          <p style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-2)', marginBottom: '16px' }}>
+            Nueva transacción
+          </p>
 
           {/* Type toggle */}
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            <button
-              type="button"
-              onClick={() => setType('expense')}
-              className="py-2 text-xs tracking-widest uppercase transition-all"
-              style={{
-                border: type === 'expense' ? '1px solid #00ffff44' : '1px solid #222',
-                background: type === 'expense' ? 'rgba(0,255,255,0.08)' : 'transparent',
-                color: type === 'expense' ? '#00ffff' : '#555',
-                boxShadow: type === 'expense' ? '0 0 10px rgba(0,255,255,0.1)' : 'none',
-              }}
-            >
-              💳 GASTO
-            </button>
-            <button
-              type="button"
-              onClick={() => setType('settlement')}
-              className="py-2 text-xs tracking-widest uppercase transition-all"
-              style={{
-                border: type === 'settlement' ? '1px solid #ff6b0044' : '1px solid #222',
-                background: type === 'settlement' ? 'rgba(255,107,0,0.08)' : 'transparent',
-                color: type === 'settlement' ? '#ff6b00' : '#555',
-                boxShadow: type === 'settlement' ? '0 0 10px rgba(255,107,0,0.1)' : 'none',
-              }}
-            >
-              ⇄ NIVELACIÓN
-            </button>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '6px',
+              background: 'var(--surface-2)',
+              borderRadius: '10px',
+              padding: '4px',
+              marginBottom: '16px',
+            }}
+          >
+            {(['expense', 'settlement'] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setType(t)}
+                style={{
+                  padding: '8px',
+                  borderRadius: '7px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  transition: 'all 0.15s',
+                  background: type === t ? 'var(--surface)' : 'transparent',
+                  color: type === t ? 'var(--text)' : 'var(--text-3)',
+                  boxShadow: type === t ? '0 1px 4px rgba(0,0,0,0.4)' : 'none',
+                }}
+              >
+                {t === 'expense' ? '💳 Gasto' : '⇄ Nivelación'}
+              </button>
+            ))}
           </div>
 
           {type === 'settlement' && (
             <div
-              className="border px-3 py-2 text-xs text-gray-500 tracking-wide mb-4 animate-slide-in"
-              style={{ borderColor: '#ff6b0022', background: 'rgba(255,107,0,0.03)' }}
+              className="animate-slide-in"
+              style={{
+                background: 'rgba(245, 158, 11, 0.08)',
+                border: '1px solid rgba(245, 158, 11, 0.2)',
+                borderRadius: '8px',
+                padding: '10px 12px',
+                fontSize: '13px',
+                color: 'var(--amber)',
+                marginBottom: '14px',
+              }}
             >
-              💸 Pago directo para nivelar la balanza
+              Pago directo para nivelar la balanza
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: type === 'expense' ? '1fr 1fr' : '1fr', gap: '10px' }}>
               <div>
-                <label className="block text-xs text-gray-600 tracking-widest mb-1">
-                  CANTIDAD (€)
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: 'var(--text-3)', marginBottom: '6px' }}>
+                  Cantidad (€)
                 </label>
                 <input
                   type="number"
@@ -329,197 +310,230 @@ export default function Dashboard({ currentUser, otherUser, onLogout }: Dashboar
                   step="0.01"
                   min="0.01"
                   required
-                  className="w-full px-3 py-2 border border-gray-800 text-sm text-gray-300 tracking-wider focus:border-gray-600 transition-colors"
-                  style={{ background: '#0d0d0d', outline: 'none' }}
                 />
               </div>
 
               {type === 'expense' && (
                 <div>
-                  <label className="block text-xs text-gray-600 tracking-widest mb-1">
-                    CATEGORÍA
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: 'var(--text-3)', marginBottom: '6px' }}>
+                    Categoría
                   </label>
-                  <select
+                  <Select
                     value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-800 text-sm text-gray-300 tracking-wider focus:border-gray-600 transition-colors"
-                    style={{ background: '#0d0d0d', outline: 'none' }}
-                  >
-                    {CATEGORIES.map((c) => (
-                      <option key={c.value} value={c.value}>
-                        {CATEGORY_EMOJI[c.value]} {c.label}
-                      </option>
-                    ))}
-                  </select>
+                    onValueChange={setCategory}
+                    options={CATEGORIES}
+                    placeholder="Selecciona..."
+                  />
                 </div>
               )}
             </div>
 
             <div>
-              <label className="block text-xs text-gray-600 tracking-widest mb-1">
-                DESCRIPCIÓN
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: 'var(--text-3)', marginBottom: '6px' }}>
+                Descripción
               </label>
               <input
                 type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder={
-                  type === 'settlement' ? 'Transferencia para nivelar...' : 'Dominio, servidor, diseño...'
-                }
+                placeholder={type === 'settlement' ? 'Transferencia para nivelar...' : 'Dominio, Claude Code, diseño...'}
                 required
-                className="w-full px-3 py-2 border border-gray-800 text-sm text-gray-300 tracking-wider focus:border-gray-600 transition-colors"
-                style={{ background: '#0d0d0d', outline: 'none' }}
               />
             </div>
 
             {formError && (
-              <div className="border border-red-900 bg-red-950/30 px-3 py-2 text-xs text-red-400 tracking-wide animate-slide-in">
-                ⚠ {formError}
+              <div
+                className="animate-slide-in"
+                style={{
+                  background: 'rgba(248, 113, 113, 0.1)',
+                  border: '1px solid rgba(248, 113, 113, 0.2)',
+                  borderRadius: '8px',
+                  padding: '10px 12px',
+                  fontSize: '13px',
+                  color: 'var(--red)',
+                }}
+              >
+                {formError}
               </div>
             )}
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3 text-sm font-bold tracking-widest uppercase transition-all disabled:opacity-50"
               style={{
-                background: submitting
-                  ? '#0a1a0a'
-                  : 'linear-gradient(135deg, #0a1a0a, #0d2a0d)',
-                border: '1px solid #00ff4144',
-                color: '#00ff41',
-                boxShadow: submitting ? 'none' : '0 0 15px rgba(0,255,65,0.15)',
+                width: '100%',
+                padding: '11px',
+                background: submitting ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.08)',
+                border: '1px solid var(--border)',
+                borderRadius: '8px',
+                color: submitting ? 'var(--text-3)' : 'var(--text)',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: submitting ? 'not-allowed' : 'pointer',
+                transition: 'all 0.15s',
+                marginTop: '2px',
+              }}
+              onMouseEnter={(e) => {
+                if (!submitting) e.currentTarget.style.background = 'rgba(255,255,255,0.12)'
+              }}
+              onMouseLeave={(e) => {
+                if (!submitting) e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
               }}
             >
-              {submitting ? '> PROCESANDO...' : '> AÑADIR'}
+              {submitting ? 'Guardando...' : 'Añadir'}
             </button>
           </form>
         </div>
 
-        {/* ── Receipt Section ── */}
+        {/* Receipt */}
         <div
-          className="border border-gray-800"
-          style={{ background: 'rgba(3,3,3,0.95)' }}
+          className="font-receipt"
+          style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: '16px',
+            overflow: 'hidden',
+          }}
         >
           {/* Receipt header */}
-          <div className="text-center py-4 border-b border-dashed border-gray-800 px-4">
-            <div className="text-xs tracking-widest text-gray-500">
-              ━━━━━━━━━━━━━━━━━━━━━━━━
-            </div>
-            <div className="text-sm tracking-widest text-gray-400 font-bold mt-1">
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '16px',
+              borderBottom: '1px dashed rgba(255,255,255,0.08)',
+            }}
+          >
+            <p style={{ fontSize: '11px', letterSpacing: '3px', color: 'var(--text-3)' }}>
+              ─────────────────────
+            </p>
+            <p style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--text-2)', letterSpacing: '2px', margin: '4px 0 2px' }}>
               CASHBROS
-            </div>
-            <div className="text-xs tracking-widest text-gray-600 mt-0.5">
+            </p>
+            <p style={{ fontSize: '11px', color: 'var(--text-3)', letterSpacing: '2px' }}>
               TICKET DE GASTOS
-            </div>
-            <div className="text-xs tracking-widest text-gray-700 mt-0.5">
-              ━━━━━━━━━━━━━━━━━━━━━━━━
-            </div>
+            </p>
+            <p style={{ fontSize: '11px', letterSpacing: '3px', color: 'var(--text-3)', marginTop: '4px' }}>
+              ─────────────────────
+            </p>
           </div>
 
-          {/* Transaction list */}
-          <div className="overflow-y-auto" style={{ maxHeight: '420px' }}>
+          {/* Transactions */}
+          <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
             {transactions.length === 0 ? (
-              <div className="text-center py-8 text-gray-700 text-xs tracking-widest">
+              <p style={{ textAlign: 'center', padding: '32px', fontSize: '12px', color: 'var(--text-3)', letterSpacing: '2px' }}>
                 — SIN TRANSACCIONES —
-              </div>
+              </p>
             ) : (
               transactions.map((tx, idx) => {
                 const isOwn = tx.payerId === currentUser.uid
                 const isSettlement = tx.type === 'settlement'
-                const isHovered = hoveredTx === tx.id
                 const isDeleting = deletingTx === tx.id
-
-                const payerColor =
-                  tx.payerId === user1.uid ? '#00ffff' : '#ff6b00'
+                const payerColor = tx.payerId === user1.uid ? 'var(--cyan)' : 'var(--amber)'
+                const payerEmoji = tx.payerId === user1.uid ? user1.emoji : user2.emoji
 
                 return (
                   <div key={tx.id}>
                     {idx > 0 && (
-                      <div className="receipt-dashed-light mx-4" />
+                      <div style={{ borderTop: '1px dashed rgba(255,255,255,0.06)', margin: '0 16px' }} />
                     )}
                     <div
-                      className="px-4 py-3 relative transition-colors cursor-default"
                       style={{
-                        background: isSettlement
-                          ? 'rgba(255,107,0,0.02)'
-                          : isHovered
-                          ? 'rgba(255,255,255,0.02)'
-                          : 'transparent',
+                        padding: '12px 16px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        gap: '12px',
+                        background: isSettlement ? 'rgba(245,158,11,0.03)' : 'transparent',
+                        transition: 'background 0.15s',
                       }}
-                      onMouseEnter={() => setHoveredTx(tx.id)}
-                      onMouseLeave={() => setHoveredTx(null)}
+                      onMouseEnter={(e) => {
+                        if (!isSettlement) e.currentTarget.style.background = 'rgba(255,255,255,0.02)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = isSettlement ? 'rgba(245,158,11,0.03)' : 'transparent'
+                      }}
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <span className="text-xs text-gray-700">
-                              {formatDate(tx.createdAt)}
-                            </span>
-                            {isSettlement && (
-                              <span className="text-xs text-orange-700">⇄ NIVELACIÓN</span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span
-                              className="text-xs font-bold"
-                              style={{ color: payerColor, opacity: 0.8 }}
-                            >
-                              {tx.payerId === user1.uid ? user1.emoji : user2.emoji}
-                            </span>
-                            <span
-                              className="text-xs truncate"
-                              style={{ color: payerColor, opacity: 0.7 }}
-                            >
-                              {tx.payerName.toUpperCase()}
-                            </span>
-                            <span className="text-gray-600 text-xs">·</span>
-                            <span className="text-sm text-gray-300 truncate">
-                              {tx.description}
-                            </span>
-                          </div>
-                          {!isSettlement && (
-                            <div className="mt-0.5">
-                              <span
-                                className="text-xs px-1 py-0.5 rounded-sm"
-                                style={{
-                                  background: 'rgba(255,255,255,0.04)',
-                                  color: '#666',
-                                  border: '1px solid #222',
-                                }}
-                              >
-                                {CATEGORY_EMOJI[tx.category] ?? '📦'} {tx.category}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span
-                            className="text-sm font-bold"
-                            style={{ color: isSettlement ? '#ff6b00' : '#e0e0e0' }}
-                          >
-                            {formatEuro(tx.amount)}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                          <span style={{ fontSize: '11px', color: 'var(--text-3)' }}>
+                            {formatDate(tx.createdAt)}
                           </span>
-
-                          {/* Delete button — only own transactions */}
-                          {isOwn && (
-                            <button
-                              onClick={() => handleDelete(tx)}
-                              disabled={isDeleting}
-                              className="text-xs px-1.5 py-0.5 transition-all"
-                              style={{
-                                color: isHovered ? '#ff0040' : 'transparent',
-                                border: isHovered ? '1px solid #ff004033' : '1px solid transparent',
-                                background: isHovered ? 'rgba(255,0,64,0.08)' : 'transparent',
-                                opacity: isDeleting ? 0.5 : 1,
-                              }}
-                              title="Eliminar transacción"
-                            >
-                              {isDeleting ? '…' : '✕'}
-                            </button>
+                          {isSettlement && (
+                            <span style={{ fontSize: '10px', color: 'var(--amber)', letterSpacing: '1px' }}>
+                              ⇄ NIVELACIÓN
+                            </span>
                           )}
                         </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '13px' }}>{payerEmoji}</span>
+                          <span style={{ fontSize: '12px', fontWeight: 'bold', color: payerColor }}>
+                            {tx.payerName}
+                          </span>
+                          <span style={{ color: 'var(--text-3)', fontSize: '11px' }}>·</span>
+                          <span style={{ fontSize: '13px', color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {tx.description}
+                          </span>
+                        </div>
+                        {!isSettlement && (
+                          <span
+                            style={{
+                              display: 'inline-block',
+                              marginTop: '4px',
+                              fontSize: '10px',
+                              color: 'var(--text-3)',
+                              background: 'rgba(255,255,255,0.04)',
+                              border: '1px solid rgba(255,255,255,0.07)',
+                              borderRadius: '4px',
+                              padding: '1px 6px',
+                              letterSpacing: '0.5px',
+                            }}
+                          >
+                            {tx.category}
+                          </span>
+                        )}
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                        <span
+                          style={{
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            color: isSettlement ? 'var(--amber)' : 'var(--text)',
+                          }}
+                        >
+                          {formatEuro(tx.amount)}
+                        </span>
+
+                        {isOwn && (
+                          <button
+                            onClick={() => handleDelete(tx)}
+                            disabled={isDeleting}
+                            title="Eliminar"
+                            style={{
+                              fontSize: '12px',
+                              color: 'var(--text-3)',
+                              background: 'transparent',
+                              border: '1px solid transparent',
+                              borderRadius: '4px',
+                              padding: '2px 6px',
+                              cursor: isDeleting ? 'not-allowed' : 'pointer',
+                              transition: 'all 0.15s',
+                              opacity: isDeleting ? 0.4 : 1,
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.color = 'var(--red)'
+                              e.currentTarget.style.borderColor = 'rgba(248,113,113,0.3)'
+                              e.currentTarget.style.background = 'rgba(248,113,113,0.08)'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.color = 'var(--text-3)'
+                              e.currentTarget.style.borderColor = 'transparent'
+                              e.currentTarget.style.background = 'transparent'
+                            }}
+                          >
+                            {isDeleting ? '…' : '✕'}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -528,39 +542,77 @@ export default function Dashboard({ currentUser, otherUser, onLogout }: Dashboar
             )}
           </div>
 
-          {/* Receipt footer */}
-          <div className="border-t border-dashed border-gray-800 px-4 py-3">
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-600 tracking-widest uppercase">
-                Total Gastado
-              </span>
-              <span
-                className="text-sm font-bold"
-                style={{ color: '#e0e0e0' }}
-              >
-                {formatEuro(totalGastado)}
-              </span>
+          {/* Footer */}
+          <div
+            style={{
+              borderTop: '1px dashed rgba(255,255,255,0.08)',
+              padding: '14px 16px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <span style={{ fontSize: '12px', color: 'var(--text-3)', letterSpacing: '1px' }}>TOTAL GASTADO</span>
+              <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-2)' }}>{formatEuro(totalGastado)}</span>
             </div>
-            <div className="flex justify-between items-center mt-1">
-              <span className="text-xs text-gray-700 tracking-widest uppercase">
-                Transacciones
-              </span>
-              <span className="text-xs text-gray-700">{transactions.length}</span>
-            </div>
-            <div className="text-center text-xs text-gray-800 tracking-widest mt-3">
-              ━━━━━━━━━━━━━━━━━━━━━━━━
-            </div>
-            <div className="text-center text-xs text-gray-800 tracking-widest mt-1">
-              GRACIAS POR SU CONFIANZA
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-3)', letterSpacing: '1px' }}>TRANSACCIONES</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-3)' }}>{transactions.length}</span>
             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="text-center text-xs text-gray-800 tracking-widest pb-4">
-          💸 CASHBROS — Contabilidad entre hermanos
-        </div>
+        <p style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-3)', paddingBottom: '16px' }}>
+          💸 CashBros — Contabilidad entre hermanos
+        </p>
       </div>
+    </div>
+  )
+}
+
+interface PlayerCardProps {
+  user: UserProfile
+  totalPaid: number
+  isCurrentUser: boolean
+  color: string
+}
+
+function PlayerCard({ user, totalPaid, isCurrentUser, color }: PlayerCardProps) {
+  return (
+    <div
+      style={{
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        borderLeft: `3px solid ${color}`,
+        borderRadius: '12px',
+        padding: '16px',
+        textAlign: 'center',
+        position: 'relative',
+        opacity: isCurrentUser ? 1 : 0.75,
+      }}
+    >
+      {isCurrentUser && (
+        <span
+          style={{
+            position: 'absolute',
+            top: '-8px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            fontSize: '10px',
+            fontWeight: '600',
+            color,
+            background: 'var(--bg)',
+            padding: '0 6px',
+            letterSpacing: '1px',
+          }}
+        >
+          TÚ
+        </span>
+      )}
+      <div style={{ fontSize: '26px', marginBottom: '6px' }}>{user.emoji}</div>
+      <div style={{ fontSize: '13px', fontWeight: '600', color }}>{user.name}</div>
+      <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text)', marginTop: '6px' }}>
+        {formatEuro(totalPaid)}
+      </div>
+      <div style={{ fontSize: '11px', color: 'var(--text-3)', marginTop: '2px' }}>pagado</div>
     </div>
   )
 }

@@ -12,16 +12,14 @@ export default function Login() {
     e.preventDefault()
     setError('')
     setLoading(true)
-
     try {
       await signInWithEmailAndPassword(auth, email, password)
-      // Auth state change in App.tsx will handle routing
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Error desconocido'
+      const msg = err instanceof Error ? err.message : ''
       if (msg.includes('user-not-found') || msg.includes('wrong-password') || msg.includes('invalid-credential')) {
-        setError('Credenciales incorrectas. Verifica tu email y contraseña.')
+        setError('Credenciales incorrectas.')
       } else if (msg.includes('too-many-requests')) {
-        setError('Demasiados intentos fallidos. Inténtalo más tarde.')
+        setError('Demasiados intentos. Inténtalo más tarde.')
       } else {
         setError('Error al iniciar sesión. Inténtalo de nuevo.')
       }
@@ -31,102 +29,93 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-grid flex items-center justify-center p-4 relative overflow-hidden scanlines">
-      {/* Ambient glow orbs */}
-      <div
-        className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full pointer-events-none"
-        style={{
-          background: 'radial-gradient(circle, rgba(0,255,255,0.04) 0%, transparent 70%)',
-          filter: 'blur(40px)',
-        }}
-      />
-      <div
-        className="absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full pointer-events-none"
-        style={{
-          background: 'radial-gradient(circle, rgba(255,107,0,0.04) 0%, transparent 70%)',
-          filter: 'blur(40px)',
-        }}
-      />
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'var(--bg)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+      }}
+    >
+      <div style={{ width: '100%', maxWidth: '400px' }}>
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <div style={{ fontSize: '40px', marginBottom: '12px' }}>💸</div>
+          <h1
+            style={{
+              fontSize: '28px',
+              fontWeight: '700',
+              letterSpacing: '-0.5px',
+              color: 'var(--text)',
+              margin: 0,
+            }}
+          >
+            CashBros
+          </h1>
+          <p style={{ color: 'var(--text-3)', fontSize: '14px', marginTop: '6px' }}>
+            Contabilidad entre hermanos
+          </p>
+        </div>
 
-      <div className="w-full max-w-md z-10">
-        {/* Terminal/Arcade login box */}
+        {/* Player cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '32px' }}>
+          <div
+            style={{
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderLeft: '3px solid var(--cyan)',
+              borderRadius: '10px',
+              padding: '16px',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: '28px', marginBottom: '6px' }}>💻</div>
+            <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--cyan)' }}>Dani</div>
+          </div>
+          <div
+            style={{
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderLeft: '3px solid var(--amber)',
+              borderRadius: '10px',
+              padding: '16px',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: '28px', marginBottom: '6px' }}>🎨</div>
+            <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--amber)' }}>Eric</div>
+          </div>
+        </div>
+
+        {/* Form */}
         <div
-          className="border border-gray-800 p-8 relative"
           style={{
-            background: 'linear-gradient(135deg, #0a0a0a 0%, #0d0d12 100%)',
-            boxShadow: '0 0 40px rgba(0,255,255,0.08), 0 0 80px rgba(0,255,255,0.04)',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: '14px',
+            padding: '28px',
           }}
         >
-          {/* Corner decorations */}
-          <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-cyan-400" />
-          <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-cyan-400" />
-          <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-cyan-400" />
-          <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-cyan-400" />
-
-          {/* Title */}
-          <div className="text-center mb-8">
-            <div
-              className="text-5xl font-bold tracking-widest mb-1 cursor-blink"
-              style={{
-                color: '#00ffff',
-                textShadow: '0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff',
-                animation: 'flicker 4s linear infinite',
-              }}
-            >
-              💸 CASHBROS
-            </div>
-            <div className="text-gray-500 text-xs tracking-widest uppercase mt-2">
-              Sistema de contabilidad entre hermanos
-            </div>
-            <div className="text-gray-700 text-xs mt-1 tracking-wider">
-              v1.0.0 — ARCADE EDITION
-            </div>
-          </div>
-
-          {/* Player cards */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <div
-              className="border p-4 text-center neon-border-cyan"
-              style={{ borderColor: '#00ffff33', background: 'rgba(0,255,255,0.03)' }}
-            >
-              <div className="text-3xl mb-2">💻</div>
-              <div className="text-xs text-cyan-400 tracking-widest">JUGADOR 1</div>
-              <div className="text-xs text-gray-600 mt-1">Hermano 1</div>
-            </div>
-            <div
-              className="border p-4 text-center neon-border-orange"
-              style={{ borderColor: '#ff6b0033', background: 'rgba(255,107,0,0.03)' }}
-            >
-              <div className="text-3xl mb-2">🎨</div>
-              <div className="text-xs text-orange-400 tracking-widest">JUGADOR 2</div>
-              <div className="text-xs text-gray-600 mt-1">Hermano 2</div>
-            </div>
-          </div>
-
-          <div className="text-center text-xs text-gray-600 mb-6 tracking-widest">
-            — Selecciona tu identidad... —
-          </div>
-
-          {/* Login form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
-              <label className="block text-xs text-gray-500 tracking-widest mb-1 uppercase">
-                &gt; Email
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: 'var(--text-2)', marginBottom: '6px' }}>
+                Email
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="bro1@cashbros.app"
+                placeholder="dani@cashbros.app"
                 required
-                className="w-full px-3 py-2 border border-gray-800 text-sm text-gray-300 tracking-wider focus:border-cyan-900 transition-colors"
-                style={{ background: '#0d0d0d', outline: 'none' }}
+                autoComplete="email"
               />
             </div>
 
             <div>
-              <label className="block text-xs text-gray-500 tracking-widest mb-1 uppercase">
-                &gt; Contraseña
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: 'var(--text-2)', marginBottom: '6px' }}>
+                Contraseña
               </label>
               <input
                 type="password"
@@ -134,46 +123,52 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full px-3 py-2 border border-gray-800 text-sm text-gray-300 tracking-wider focus:border-cyan-900 transition-colors"
-                style={{ background: '#0d0d0d', outline: 'none' }}
+                autoComplete="current-password"
               />
             </div>
 
             {error && (
-              <div className="border border-red-900 bg-red-950/30 px-3 py-2 text-xs text-red-400 tracking-wide animate-slide-in">
-                ⚠ {error}
+              <div
+                className="animate-slide-in"
+                style={{
+                  background: 'rgba(248, 113, 113, 0.1)',
+                  border: '1px solid rgba(248, 113, 113, 0.25)',
+                  borderRadius: '8px',
+                  padding: '10px 12px',
+                  fontSize: '13px',
+                  color: 'var(--red)',
+                }}
+              >
+                {error}
               </div>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 text-sm font-bold tracking-widest uppercase transition-all disabled:opacity-50"
               style={{
-                background: loading ? '#0d1a1a' : 'linear-gradient(135deg, #001a1a, #003333)',
-                border: '1px solid #00ffff44',
-                color: '#00ffff',
-                boxShadow: loading ? 'none' : '0 0 20px rgba(0,255,255,0.15)',
+                width: '100%',
+                padding: '11px',
+                background: loading ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.08)',
+                border: '1px solid var(--border)',
+                borderRadius: '8px',
+                color: loading ? 'var(--text-3)' : 'var(--text)',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                transition: 'all 0.15s',
+                marginTop: '4px',
               }}
               onMouseEnter={(e) => {
-                if (!loading) {
-                  e.currentTarget.style.boxShadow = '0 0 30px rgba(0,255,255,0.3)'
-                  e.currentTarget.style.borderColor = '#00ffff88'
-                }
+                if (!loading) e.currentTarget.style.background = 'rgba(255,255,255,0.12)'
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = '0 0 20px rgba(0,255,255,0.15)'
-                e.currentTarget.style.borderColor = '#00ffff44'
+                if (!loading) e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
               }}
             >
-              {loading ? '> CONECTANDO...' : '> LOGIN'}
+              {loading ? 'Entrando...' : 'Entrar'}
             </button>
           </form>
-
-          {/* Footer */}
-          <div className="mt-6 pt-4 border-t border-gray-900 text-center text-xs text-gray-700 tracking-widest">
-            INSERT COIN TO CONTINUE
-          </div>
         </div>
       </div>
     </div>
