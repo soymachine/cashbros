@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>💸 CashBros</title>
+  <script>
+    // GitHub Pages SPA redirect hack
+    // Stores the current path in sessionStorage and redirects to index.html
+    // The index.html will then restore the path using the replaceState hack
+    const path = window.location.pathname;
+    const base = '/cashbros';
+    const rest = path.replace(base, '') || '/';
+    sessionStorage.setItem('spa-redirect', rest + window.location.search + window.location.hash);
+    window.location.replace(base + '/');
+  </script>
+</head>
+<body>
+  <div style="
+    min-height: 100vh;
+    background: #050505;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Share Tech Mono', monospace;
+    color: #00ffff;
+  ">
+    💸 Redirigiendo...
+  </div>
+</body>
+</html>
