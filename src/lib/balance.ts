@@ -12,20 +12,20 @@ export function computeBalance(
   for (const tx of transactions) {
     if (tx.type === 'expense') {
       if (tx.payerId === user1.uid) {
-        // user1 paid → user2 owes half → net increases
-        netBalance += tx.amount / 2
+        // user1 paid → full amount adds to user1's surplus
+        netBalance += tx.amount
         totalPaidByUser1 += tx.amount
       } else if (tx.payerId === user2.uid) {
-        // user2 paid → user1 owes half → net decreases
-        netBalance -= tx.amount / 2
+        // user2 paid → full amount adds to user2's surplus
+        netBalance -= tx.amount
         totalPaidByUser2 += tx.amount
       }
     } else if (tx.type === 'settlement') {
       if (tx.payerId === user1.uid) {
-        // user1 pays user2 → user1 reduces what user2 owes → net decreases
+        // user1 pays user2 → reduces user1's surplus
         netBalance -= tx.amount
       } else if (tx.payerId === user2.uid) {
-        // user2 pays user1 → user2 reduces what user1 owes → net increases
+        // user2 pays user1 → reduces user2's surplus
         netBalance += tx.amount
       }
     }
