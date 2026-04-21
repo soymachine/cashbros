@@ -131,112 +131,77 @@ function RopeView({ currentUser, otherUser, balance, debugAmount, debugDirection
   const owingIsBottom = !isDebug && balance.owingUser?.uid === otherUser.uid
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      {/* Top user (current) */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        paddingBottom: '20px',
-        gap: '2px',
-      }}>
-        <span style={{ fontSize: '28px' }}>{currentUser.emoji}</span>
-        <span style={{
-          fontSize: '22px',
-          fontWeight: '600',
-          letterSpacing: '-0.5px',
-          color: owingIsTop ? 'var(--red)' : 'var(--text)',
-        }}>
-          {currentUser.name}
-        </span>
-        <span style={{ fontSize: '13px', color: 'var(--text-2)' }}>
-          {formatEuro(balance.user1.uid === currentUser.uid ? balance.totalPaidByUser1 : balance.totalPaidByUser2)} pagado
-        </span>
-        {owingIsTop && (
-          <span style={{ fontSize: '12px', color: 'var(--red)', marginTop: '2px' }}>
-            debe {formatEuro(balance.amount)}
-          </span>
-        )}
-      </div>
+    <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
 
-      {/* Rope canvas */}
-      <div style={{ height: '120px', position: 'relative' }}>
+      {/* Canvas — full content area */}
+      <div style={{ position: 'absolute', inset: 0 }}>
         <RopeCanvas tensionLevel={tensionLevel} tensionDirection={effectiveDirection} />
-        {/* Center pill */}
-        {(balance.isEven && !isDebug) && (
-          <div style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            fontSize: '11px',
-            color: 'var(--text-3)',
-            background: 'var(--bg)',
-            padding: '2px 8px',
-            borderRadius: '20px',
-            border: '1px solid var(--border)',
-            pointerEvents: 'none',
-          }}>
-            equilibrio
-          </div>
-        )}
-        {isDebug && (
-          <div style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            fontSize: '10px',
-            color: '#9333ea',
-            background: 'var(--bg)',
-            padding: '2px 8px',
-            borderRadius: '20px',
-            border: '1px solid rgba(147,51,234,0.3)',
-            pointerEvents: 'none',
-            fontFamily: 'monospace',
-            whiteSpace: 'nowrap',
-          }}>
-            debug · €{debugAmount!.toFixed(0)}
-          </div>
+      </div>
+
+      {/* Top name (current user) */}
+      <div style={{
+        position: 'absolute',
+        top: '28px',
+        left: 0,
+        right: 0,
+        textAlign: 'center',
+        pointerEvents: 'none',
+      }}>
+        <p style={{ fontSize: '40px', fontWeight: '700', letterSpacing: '-1.5px', color: 'var(--text)', lineHeight: 1 }}>
+          {currentUser.name}
+        </p>
+        {owingIsTop && (
+          <p style={{ fontSize: '14px', color: 'var(--red)', marginTop: '6px', fontWeight: '500' }}>
+            debe {formatEuro(balance.amount)}
+          </p>
         )}
       </div>
 
-      {/* Bottom user (other) */}
+      {/* Bottom name (other user) */}
       <div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        paddingTop: '20px',
-        gap: '2px',
+        position: 'absolute',
+        bottom: '28px',
+        left: 0,
+        right: 0,
+        textAlign: 'center',
+        pointerEvents: 'none',
       }}>
         {otherUser.uid === 'placeholder' ? (
-          <span style={{ fontSize: '13px', color: 'var(--text-3)' }}>Esperando al otro hermano…</span>
+          <p style={{ fontSize: '20px', color: 'var(--text-3)' }}>…</p>
         ) : (
           <>
-            <span style={{ fontSize: '28px' }}>{otherUser.emoji}</span>
-            <span style={{
-              fontSize: '22px',
-              fontWeight: '600',
-              letterSpacing: '-0.5px',
-              color: owingIsBottom ? 'var(--red)' : 'var(--text)',
-            }}>
-              {otherUser.name}
-            </span>
-            <span style={{ fontSize: '13px', color: 'var(--text-2)' }}>
-              {formatEuro(balance.user1.uid === otherUser.uid ? balance.totalPaidByUser1 : balance.totalPaidByUser2)} pagado
-            </span>
             {owingIsBottom && (
-              <span style={{ fontSize: '12px', color: 'var(--red)', marginTop: '2px' }}>
+              <p style={{ fontSize: '14px', color: 'var(--red)', marginBottom: '6px', fontWeight: '500' }}>
                 debe {formatEuro(balance.amount)}
-              </span>
+              </p>
             )}
+            <p style={{ fontSize: '40px', fontWeight: '700', letterSpacing: '-1.5px', color: 'var(--text)', lineHeight: 1 }}>
+              {otherUser.name}
+            </p>
           </>
         )}
       </div>
+
+      {/* Debug badge */}
+      {isDebug && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          fontSize: '10px',
+          color: '#9333ea',
+          background: 'var(--bg)',
+          padding: '2px 10px',
+          borderRadius: '20px',
+          border: '1px solid rgba(147,51,234,0.3)',
+          pointerEvents: 'none',
+          fontFamily: 'monospace',
+          whiteSpace: 'nowrap',
+        }}>
+          debug · €{debugAmount!.toFixed(0)}
+        </div>
+      )}
     </div>
   )
 }
