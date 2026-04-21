@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { onAuthStateChanged, type User } from 'firebase/auth'
 import { collection, getDocs } from 'firebase/firestore'
 import { auth, db } from './firebase'
@@ -6,6 +6,7 @@ import { getUserProfile, createUserProfileFromEmail } from './lib/db'
 import type { UserProfile } from './types'
 import Login from './pages/Login'
 import Home from './pages/Home'
+import { LoadingRope } from './components/LoadingRope'
 
 type AppState =
   | { status: 'loading' }
@@ -14,23 +15,27 @@ type AppState =
 
 export default function App() {
   const [appState, setAppState] = useState<AppState>({ status: 'loading' })
+  const [animDone, setAnimDone] = useState(false)
+
+  // Keep resolved auth result in a ref so the animation callback can read it
+  const resolvedState = useRef<AppState | null>(null)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!firebaseUser) {
-        setAppState({ status: 'unauthenticated' })
+        const next: AppState = { status: 'unauthenticated' }
+        resolvedState.current = next
+        setAppState(next)
         return
       }
 
       try {
-        // Try to get current user profile, create if doesn't exist
         let currentUser = await getUserProfile(firebaseUser.uid)
         if (!currentUser) {
           const email = firebaseUser.email ?? ''
           currentUser = await createUserProfileFromEmail(firebaseUser.uid, email)
         }
 
-        // Find the other user — query all users, find the one that's not us
         const usersSnap = await getDocs(collection(db, 'users'))
         let otherUser: UserProfile | null = null
         for (const docSnap of usersSnap.docs) {
@@ -48,7 +53,6 @@ export default function App() {
         }
 
         if (!otherUser) {
-          // Other user hasn't logged in yet — create a placeholder
           const isDani = currentUser.username === 'dani'
           otherUser = {
             uid: 'placeholder',
@@ -59,30 +63,27 @@ export default function App() {
           }
         }
 
-        setAppState({
-          status: 'authenticated',
-          firebaseUser,
-          currentUser,
-          otherUser,
-        })
+        const next: AppState = { status: 'authenticated', firebaseUser, currentUser, otherUser }
+        resolvedState.current = next
+        setAppState(next)
       } catch (err) {
         console.error('Error loading user profile:', err)
-        setAppState({ status: 'unauthenticated' })
+        const next: AppState = { status: 'unauthenticated' }
+        resolvedState.current = next
+        setAppState(next)
       }
     })
 
     return unsubscribe
   }, [])
 
-  if (appState.status === 'loading') {
+  // Show loading screen until BOTH auth is done AND animation is done
+  const isLoading = appState.status === 'loading' || !animDone
+
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-grid flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-4 animate-flicker neon-cyan">💸</div>
-          <div className="text-green-400 text-sm tracking-widest animate-pulse">
-            CARGANDO SISTEMA...
-          </div>
-        </div>
+      <div style={{ height: '100dvh', background: '#ffffff' }}>
+        <LoadingRope onComplete={() => setAnimDone(true)} />
       </div>
     )
   }
