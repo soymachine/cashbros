@@ -3,87 +3,74 @@
 @tailwind utilities;
 
 :root {
-  --bg: #09090b;
-  --surface: #111118;
-  --surface-2: #18181f;
-  --border: rgba(255, 255, 255, 0.07);
-  --border-hover: rgba(255, 255, 255, 0.14);
-  --text: #e2e8f0;
-  --text-2: #94a3b8;
-  --text-3: #475569;
-  --cyan: #22d3ee;
-  --amber: #f59e0b;
-  --green: #4ade80;
-  --red: #f87171;
+  --bg:        #f8f7f4;
+  --surface:   #ffffff;
+  --border:    rgba(0, 0, 0, 0.08);
+  --text:      #0d0d0d;
+  --text-2:    #6b6b65;
+  --text-3:    #b0afa9;
+  --red:       #c0392b;
+  --green:     #27ae60;
+  --amber:     #d97706;
 }
 
 * {
   font-family: 'Inter', system-ui, sans-serif;
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  background-color: var(--bg);
+  background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
+  overflow: hidden;  /* full-screen app, no scroll on body */
 }
 
-/* Receipt section keeps monospace */
 .font-receipt {
   font-family: 'Share Tech Mono', monospace;
 }
 
 /* Scrollbar */
-::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.18);
-}
-
-/* Balance update: subtle fade-in when value changes */
-@keyframes balance-update {
-  0%   { opacity: 0.3; transform: translateY(4px); }
-  100% { opacity: 1;   transform: translateY(0); }
-}
-.animate-balance-update {
-  animation: balance-update 0.35s ease-out;
-}
-
-/* Slide in for notifications */
-@keyframes slide-in {
-  0%   { opacity: 0; transform: translateY(-6px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-.animate-slide-in {
-  animation: slide-in 0.2s ease-out;
-}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
 
 /* Input base */
 input[type='text'],
 input[type='email'],
 input[type='password'],
 input[type='number'] {
-  background: var(--surface);
+  background: var(--bg);
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 14px;
   width: 100%;
-  transition: border-color 0.15s;
   outline: none;
+  transition: border-color 0.15s;
+  -webkit-font-smoothing: antialiased;
 }
-input:focus {
-  border-color: rgba(255, 255, 255, 0.25);
+input:focus { border-color: rgba(0,0,0,0.25); }
+input::placeholder { color: var(--text-3); }
+
+/* Slide-in */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-input::placeholder {
-  color: var(--text-3);
+.animate-slide-up {
+  animation: slide-up 0.25s ease-out;
+}
+
+/* View transition */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
 }

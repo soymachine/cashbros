@@ -5,7 +5,7 @@ import { auth, db } from './firebase'
 import { getUserProfile, createUserProfileFromEmail } from './lib/db'
 import type { UserProfile } from './types'
 import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
+import Home from './pages/Home'
 
 type AppState =
   | { status: 'loading' }
@@ -92,7 +92,7 @@ export default function App() {
   }
 
   return (
-    <Dashboard
+    <Home
       currentUser={appState.currentUser}
       otherUser={appState.otherUser}
       onLogout={() => auth.signOut()}
