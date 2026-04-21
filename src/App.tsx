@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { onAuthStateChanged, type User } from 'firebase/auth'
 import { collection, getDocs } from 'firebase/firestore'
 import { auth, db } from './firebase'
@@ -6,7 +6,6 @@ import { getUserProfile, createUserProfileFromEmail } from './lib/db'
 import type { UserProfile } from './types'
 import Login from './pages/Login'
 import Home from './pages/Home'
-import { LoadingRope } from './components/LoadingRope'
 
 type AppState =
   | { status: 'loading' }
@@ -15,17 +14,11 @@ type AppState =
 
 export default function App() {
   const [appState, setAppState] = useState<AppState>({ status: 'loading' })
-  const [animDone, setAnimDone] = useState(false)
-
-  // Keep resolved auth result in a ref so the animation callback can read it
-  const resolvedState = useRef<AppState | null>(null)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!firebaseUser) {
-        const next: AppState = { status: 'unauthenticated' }
-        resolvedState.current = next
-        setAppState(next)
+        setAppState({ status: 'unauthenticated' })
         return
       }
 
@@ -63,29 +56,18 @@ export default function App() {
           }
         }
 
-        const next: AppState = { status: 'authenticated', firebaseUser, currentUser, otherUser }
-        resolvedState.current = next
-        setAppState(next)
+        setAppState({ status: 'authenticated', firebaseUser, currentUser, otherUser })
       } catch (err) {
         console.error('Error loading user profile:', err)
-        const next: AppState = { status: 'unauthenticated' }
-        resolvedState.current = next
-        setAppState(next)
+        setAppState({ status: 'unauthenticated' })
       }
     })
 
     return unsubscribe
   }, [])
 
-  // Show loading screen until BOTH auth is done AND animation is done
-  const isLoading = appState.status === 'loading' || !animDone
-
-  if (isLoading) {
-    return (
-      <div style={{ height: '100dvh', background: '#ffffff' }}>
-        <LoadingRope onComplete={() => setAnimDone(true)} />
-      </div>
-    )
+  if (appState.status === 'loading') {
+    return <div style={{ height: '100dvh', background: '#ffffff' }} />
   }
 
   if (appState.status === 'unauthenticated') {
