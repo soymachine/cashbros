@@ -8,27 +8,13 @@ interface RopeCanvasProps {
   tensionDirection: number
 }
 
-interface Spark {
-  xNorm: number   // 0–1 along rope
-  born:  number   // performance.now()
-  life:  number   // total lifetime ms
-  angle: number   // rotation of the starburst
-  size:  number   // peak arm length px
-}
-
 function easeOut(x: number): number {
   return 1 - Math.pow(1 - x, 3)
 }
 
-// Rope Y at a given normalised x, given current animation params
 function ropeY(
-  xNorm: number,
-  cy: number,
-  amp: number,
-  freq: number,
-  speed: number,
-  sag: number,
-  t: number,
+  xNorm: number, cy: number,
+  amp: number, freq: number, speed: number, sag: number, t: number,
 ): number {
   const env = Math.sin(Math.PI * xNorm)
   const w1  = amp       * Math.sin(2 * Math.PI * (xNorm * freq       - t * speed))        * env
@@ -53,7 +39,6 @@ export function RopeCanvas({ tensionLevel, tensionDirection }: RopeCanvasProps) 
     const el  = canvas
 
     let width = 0, height = 0, animId = 0, t = 0
-    const sparks: Spark[] = []
 
     function setupCanvas() {
       const rect = el.getBoundingClientRect()
@@ -68,64 +53,6 @@ export function RopeCanvas({ tensionLevel, tensionDirection }: RopeCanvasProps) 
     const ro = new ResizeObserver(setupCanvas)
     ro.observe(el)
     setupCanvas()
-
-    function spawnSpark(tl: number) {
-      // Probability per frame scales with tension; avoid edges of rope
-      const prob = 0.004 + tl * 0.018
-      if (Math.random() > prob) return
-      sparks.push({
-        xNorm: 0.08 + Math.random() * 0.84,
-        born:  performance.now(),
-        life:  320 + Math.random() * 280,
-        angle: Math.random() * Math.PI,
-        size:  2.5 + Math.random() * 3.5,
-      })
-    }
-
-    function drawSparks(
-      cy: number,
-      amp: number,
-      freq: number,
-      speed: number,
-      sag: number,
-    ) {
-      const now = performance.now()
-      for (let i = sparks.length - 1; i >= 0; i--) {
-        const s   = sparks[i]
-        const age = (now - s.born) / s.life   // 0 → 1
-
-        if (age >= 1) { sparks.splice(i, 1); continue }
-
-        const x  = s.xNorm * width
-        const y  = ropeY(s.xNorm, cy, amp, freq, speed, sag, t)
-
-        // Fade in over first 20%, fade out over remaining 80%
-        const opacity     = age < 0.2 ? age / 0.2 : 1 - (age - 0.2) / 0.8
-        // Size peaks at 20% then very gently shrinks
-        const sizeMult    = age < 0.2 ? age / 0.2 : 1 - (age - 0.2) / 0.8 * 0.4
-        const currentSize = s.size * sizeMult
-
-        ctx.save()
-        ctx.translate(x, y)
-        ctx.rotate(s.angle)
-        ctx.globalAlpha = opacity * 0.65
-        ctx.strokeStyle = '#0d0d0d'
-        ctx.lineWidth   = 1
-        ctx.lineCap     = 'round'
-
-        // Four arms at 0°, 45°, 90°, 135°
-        for (let j = 0; j < 4; j++) {
-          const a = j * Math.PI / 4
-          const cos = Math.cos(a), sin = Math.sin(a)
-          ctx.beginPath()
-          ctx.moveTo(-cos * currentSize * 0.25, -sin * currentSize * 0.25)
-          ctx.lineTo( cos * currentSize,          sin * currentSize)
-          ctx.stroke()
-        }
-
-        ctx.restore()
-      }
-    }
 
     function draw() {
       if (!width || !height) { animId = requestAnimationFrame(draw); return }
@@ -157,7 +84,6 @@ export function RopeCanvas({ tensionLevel, tensionDirection }: RopeCanvasProps) 
       } else {
         rightX = width
         amp = tAmp; freq = tFreq; speed = tSpeed; sag = tSag
-        spawnSpark(tl)
       }
 
       ctx.clearRect(0, 0, width, height)
@@ -180,11 +106,6 @@ export function RopeCanvas({ tensionLevel, tensionDirection }: RopeCanvasProps) 
         ctx.lineWidth   = 1.5
         ctx.lineJoin    = 'round'
         ctx.stroke()
-
-        // Draw sparks on top of rope
-        if (elapsed >= ENTRY_MS + SETTLE_MS) {
-          drawSparks(cy, amp, freq, speed, sag)
-        }
       }
 
       t += 0.016
