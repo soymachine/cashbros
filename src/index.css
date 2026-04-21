@@ -21,11 +21,23 @@
   padding: 0;
 }
 
+html {
+  background: #ffffff;
+  /* Prevent iOS bounce-scroll revealing a dark background */
+  overscroll-behavior: none;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
-  overflow: hidden;  /* full-screen app, no scroll on body */
+  overflow: hidden;
+  overscroll-behavior: none;
+  /* Disable text selection & callout on long-press (mobile) */
+  -webkit-user-select: none;
+  user-select: none;
+  /* Disable double-tap zoom on iOS */
+  touch-action: manipulation;
 }
 
 .font-receipt {
