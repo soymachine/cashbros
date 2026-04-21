@@ -36,7 +36,10 @@ export default function Login() {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '32px 24px',
+      paddingTop: 'max(32px, env(safe-area-inset-top))',
+      paddingBottom: 'max(32px, env(safe-area-inset-bottom))',
+      paddingLeft: '24px',
+      paddingRight: '24px',
     }}>
       {/* Logo */}
       <div style={{ textAlign: 'center', marginBottom: '48px' }}>

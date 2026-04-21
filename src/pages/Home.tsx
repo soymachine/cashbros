@@ -762,6 +762,8 @@ export default function Home({ currentUser, otherUser, onLogout }: HomeProps) {
       maxWidth: '480px',
       margin: '0 auto',
       overflow: 'hidden',
+      paddingTop: 'env(safe-area-inset-top)',
+      paddingBottom: 'env(safe-area-inset-bottom)',
     }}>
       {/* Main content area */}
       {view === 'home' && (
