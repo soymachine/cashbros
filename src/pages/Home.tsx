@@ -111,21 +111,24 @@ function NavBar({ active, onNavigate }: { active: View; onNavigate: (v: View) =>
 
 // ─── ROPE VIEW ────────────────────────────────────────────────────────────────
 
-function RopeView({ currentUser, otherUser, balance }: {
+function RopeView({ currentUser, otherUser, balance, debugAmount, debugDirection }: {
   currentUser: UserProfile
   otherUser: UserProfile
   balance: ReturnType<typeof computeBalance>
+  debugAmount: number | null
+  debugDirection: number
 }) {
-  const tensionLevel = Math.min(1, balance.amount / 200)
+  const isDebug = debugAmount !== null
+  const effectiveAmount    = isDebug ? debugAmount! : balance.amount
+  const effectiveDirection = isDebug ? debugDirection : (() => {
+    if (balance.isEven || !balance.owingUser) return 0
+    return balance.owingUser.uid === currentUser.uid ? -1 : 1
+  })()
 
-  let tensionDirection = 0
-  if (!balance.isEven && balance.owingUser) {
-    // Current user is at the TOP. If top user owes → pull up (-1). If bottom user owes → pull down (+1).
-    tensionDirection = balance.owingUser.uid === currentUser.uid ? -1 : 1
-  }
+  const tensionLevel = Math.min(1, effectiveAmount / 200)
 
-  const owingIsTop    = balance.owingUser?.uid === currentUser.uid
-  const owingIsBottom = balance.owingUser?.uid === otherUser.uid
+  const owingIsTop    = !isDebug && balance.owingUser?.uid === currentUser.uid
+  const owingIsBottom = !isDebug && balance.owingUser?.uid === otherUser.uid
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -160,9 +163,9 @@ function RopeView({ currentUser, otherUser, balance }: {
 
       {/* Rope canvas */}
       <div style={{ height: '120px', position: 'relative' }}>
-        <RopeCanvas tensionLevel={tensionLevel} tensionDirection={tensionDirection} />
-        {/* Balance amount pill — shown at center when even */}
-        {balance.isEven && (
+        <RopeCanvas tensionLevel={tensionLevel} tensionDirection={effectiveDirection} />
+        {/* Center pill */}
+        {(balance.isEven && !isDebug) && (
           <div style={{
             position: 'absolute',
             top: '50%',
@@ -177,6 +180,25 @@ function RopeView({ currentUser, otherUser, balance }: {
             pointerEvents: 'none',
           }}>
             equilibrio
+          </div>
+        )}
+        {isDebug && (
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            fontSize: '10px',
+            color: '#9333ea',
+            background: 'var(--bg)',
+            padding: '2px 8px',
+            borderRadius: '20px',
+            border: '1px solid rgba(147,51,234,0.3)',
+            pointerEvents: 'none',
+            fontFamily: 'monospace',
+            whiteSpace: 'nowrap',
+          }}>
+            debug · €{debugAmount!.toFixed(0)}
           </div>
         )}
       </div>
@@ -537,11 +559,15 @@ function AddView({ currentUser, onBack }: { currentUser: UserProfile; onBack: ()
 
 // ─── SETTINGS VIEW ────────────────────────────────────────────────────────────
 
-function SettingsView({ currentUser, otherUser, onBack, onLogout }: {
+function SettingsView({ currentUser, otherUser, onBack, onLogout, debugAmount, debugDirection, setDebugAmount, setDebugDirection }: {
   currentUser: UserProfile
   otherUser: UserProfile
   onBack: () => void
   onLogout: () => void
+  debugAmount: number | null
+  debugDirection: number
+  setDebugAmount: (v: number | null) => void
+  setDebugDirection: (v: number) => void
 }) {
   return (
     <div className="animate-fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -585,6 +611,127 @@ function SettingsView({ currentUser, otherUser, onBack, onLogout }: {
           ))}
         </div>
 
+        {/* Debug */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <p style={{ fontSize: '11px', fontWeight: '600', color: '#9333ea', letterSpacing: '1px', textTransform: 'uppercase', fontFamily: 'monospace' }}>
+              Debug
+            </p>
+            {/* Toggle */}
+            <button
+              onClick={() => setDebugAmount(debugAmount === null ? 0 : null)}
+              style={{
+                width: '40px',
+                height: '22px',
+                borderRadius: '11px',
+                border: 'none',
+                cursor: 'pointer',
+                background: debugAmount !== null ? '#9333ea' : 'rgba(0,0,0,0.12)',
+                position: 'relative',
+                transition: 'background 0.2s',
+                flexShrink: 0,
+              }}
+            >
+              <span style={{
+                position: 'absolute',
+                top: '3px',
+                left: debugAmount !== null ? '21px' : '3px',
+                width: '16px',
+                height: '16px',
+                borderRadius: '50%',
+                background: 'white',
+                transition: 'left 0.2s',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+              }} />
+            </button>
+          </div>
+
+          {debugAmount !== null && (
+            <div className="animate-slide-up" style={{
+              background: 'rgba(147,51,234,0.05)',
+              border: '1px solid rgba(147,51,234,0.2)',
+              borderRadius: '10px',
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+            }}>
+              {/* Amount slider */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <label style={{ fontSize: '12px', color: '#9333ea', fontFamily: 'monospace' }}>
+                    balance ficticio
+                  </label>
+                  <span style={{ fontSize: '12px', fontWeight: '700', color: '#9333ea', fontFamily: 'monospace' }}>
+                    €{debugAmount.toFixed(0)}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="500"
+                  step="1"
+                  value={debugAmount}
+                  onChange={e => setDebugAmount(parseFloat(e.target.value))}
+                  style={{
+                    width: '100%',
+                    accentColor: '#9333ea',
+                    cursor: 'pointer',
+                    height: 'auto',
+                    padding: 0,
+                    border: 'none',
+                    background: 'transparent',
+                    borderRadius: 0,
+                  }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--text-3)', fontFamily: 'monospace' }}>€0</span>
+                  <span style={{ fontSize: '10px', color: 'var(--text-3)', fontFamily: 'monospace' }}>€500</span>
+                </div>
+              </div>
+
+              {/* Direction toggle */}
+              <div>
+                <label style={{ fontSize: '12px', color: '#9333ea', fontFamily: 'monospace', display: 'block', marginBottom: '8px' }}>
+                  dirección
+                </label>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr 1fr',
+                  gap: '4px',
+                  background: 'rgba(0,0,0,0.05)',
+                  borderRadius: '8px',
+                  padding: '3px',
+                }}>
+                  {[
+                    { value: -1, label: '↑ arriba' },
+                    { value:  0, label: '— plana' },
+                    { value:  1, label: '↓ abajo' },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setDebugDirection(opt.value)}
+                      style={{
+                        padding: '6px 4px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '11px',
+                        fontFamily: 'monospace',
+                        background: debugDirection === opt.value ? '#9333ea' : 'transparent',
+                        color: debugDirection === opt.value ? 'white' : 'var(--text-3)',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Version */}
         <div>
           <p style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px' }}>
@@ -624,6 +771,8 @@ function SettingsView({ currentUser, otherUser, onBack, onLogout }: {
 export default function Home({ currentUser, otherUser, onLogout }: HomeProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [view, setView] = useState<View>('home')
+  const [debugAmount, setDebugAmount] = useState<number | null>(null)
+  const [debugDirection, setDebugDirection] = useState<number>(1)
 
   // user1 = cyan (Dani), user2 = orange (Eric) — consistent for balance sign
   const user1 = currentUser.color === 'cyan' ? currentUser : otherUser
@@ -655,6 +804,8 @@ export default function Home({ currentUser, otherUser, onLogout }: HomeProps) {
           currentUser={currentUser}
           otherUser={otherUser}
           balance={balance}
+          debugAmount={debugAmount}
+          debugDirection={debugDirection}
         />
       )}
       {view === 'transactions' && (
@@ -674,6 +825,10 @@ export default function Home({ currentUser, otherUser, onLogout }: HomeProps) {
           otherUser={otherUser}
           onBack={() => setView('home')}
           onLogout={onLogout}
+          debugAmount={debugAmount}
+          debugDirection={debugDirection}
+          setDebugAmount={setDebugAmount}
+          setDebugDirection={setDebugDirection}
         />
       )}
 
