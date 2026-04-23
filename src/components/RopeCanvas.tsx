@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'react'
 
 const ENTRY_MS  = 750
 const SETTLE_MS = 600
+const GRID_SPACING = 48
 
 interface RopeCanvasProps {
   tensionLevel: number
@@ -21,6 +22,60 @@ function ropeY(
   const w2  = amp * 0.4 * Math.sin(2 * Math.PI * (xNorm * freq * 1.6 + t * speed * 0.65)) * env
   const w3  = amp * 0.2 * Math.sin(2 * Math.PI * (xNorm * freq * 2.8 - t * speed * 1.3))  * env
   return cy + sag * env + w1 + w2 + w3
+}
+
+function gridDisp(
+  gx: number, gy: number,
+  width: number, height: number,
+  tl: number, td: number, t: number,
+): number {
+  const xNorm = gx / width
+  const yNorm = gy / height
+  const xEnv  = Math.sin(Math.PI * xNorm)
+  const yEnv  = Math.exp(-6 * Math.pow(yNorm - 0.5, 2))
+  const breathe = tl * 5 * Math.sin(t * 0.45) * xEnv * yEnv
+  return tl * 65 * xEnv * yEnv * td + breathe
+}
+
+function drawGrid(
+  ctx: CanvasRenderingContext2D,
+  width: number, height: number,
+  tl: number, td: number, t: number,
+) {
+  const cols = Math.ceil(width  / GRID_SPACING) + 2
+  const rows = Math.ceil(height / GRID_SPACING) + 2
+  const cellW = width  / (cols - 1)
+  const cellH = height / (rows - 1)
+
+  ctx.save()
+  ctx.strokeStyle = 'rgba(0,0,0,0.055)'
+  ctx.lineWidth   = 0.6
+
+  for (let r = 0; r < rows; r++) {
+    ctx.beginPath()
+    for (let c = 0; c < cols; c++) {
+      const gx = c * cellW
+      const gy = r * cellH
+      const dy = gridDisp(gx, gy, width, height, tl, td, t)
+      if (c === 0) ctx.moveTo(gx, gy + dy)
+      else         ctx.lineTo(gx, gy + dy)
+    }
+    ctx.stroke()
+  }
+
+  for (let c = 0; c < cols; c++) {
+    ctx.beginPath()
+    for (let r = 0; r < rows; r++) {
+      const gx = c * cellW
+      const gy = r * cellH
+      const dy = gridDisp(gx, gy, width, height, tl, td, t)
+      if (r === 0) ctx.moveTo(gx, gy + dy)
+      else         ctx.lineTo(gx, gy + dy)
+    }
+    ctx.stroke()
+  }
+
+  ctx.restore()
 }
 
 export function RopeCanvas({ tensionLevel, tensionDirection }: RopeCanvasProps) {
@@ -67,11 +122,13 @@ export function RopeCanvas({ tensionLevel, tensionDirection }: RopeCanvasProps) 
 
       let rightX: number
       let amp: number, freq: number, speed: number, sag: number
+      let gridTl: number
 
       if (elapsed < ENTRY_MS) {
         const p = easeOut(elapsed / ENTRY_MS)
         rightX = p * width
         amp = 1.8; freq = 3.0; speed = 0.35; sag = 0
+        gridTl = 0
 
       } else if (elapsed < ENTRY_MS + SETTLE_MS) {
         const p = easeOut((elapsed - ENTRY_MS) / SETTLE_MS)
@@ -80,13 +137,17 @@ export function RopeCanvas({ tensionLevel, tensionDirection }: RopeCanvasProps) 
         freq  = 3.0  + (tFreq  - 3.0)  * p
         speed = 0.35 + (tSpeed - 0.35) * p
         sag   = tSag * p
+        gridTl = tl * p
 
       } else {
         rightX = width
         amp = tAmp; freq = tFreq; speed = tSpeed; sag = tSag
+        gridTl = tl
       }
 
       ctx.clearRect(0, 0, width, height)
+
+      drawGrid(ctx, width, height, gridTl, td, t)
 
       if (rightX > 0) {
         const cy    = height / 2
