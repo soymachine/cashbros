@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent, type ReactNode, type CSSProperties } from 'react'
 import { RopeCanvas } from '../components/RopeCanvas'
 import { Select } from '../components/Select'
 import { getTransactions, addTransaction, deleteTransaction } from '../lib/db'
@@ -25,6 +25,62 @@ const CATEGORIES = [
 
 function formatDate(d: Date) {
   return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', '')
+}
+
+// ─── SHARED EDITORIAL STYLES ─────────────────────────────────────────────────
+
+const metaLabelStyle = {
+  fontFamily: 'var(--font-mono)',
+  fontSize: '10px',
+  fontWeight: 500,
+  letterSpacing: '0.22em',
+  textTransform: 'uppercase' as const,
+  color: 'var(--text-3)',
+}
+
+const sectionTitleStyle = {
+  ...metaLabelStyle,
+  display: 'block',
+  marginBottom: '14px',
+}
+
+function SubViewHeader({ label, onBack, right }: {
+  label: string
+  onBack: () => void
+  right?: ReactNode
+}) {
+  return (
+    <div style={{
+      padding: '22px 24px 14px',
+      display: 'flex',
+      alignItems: 'baseline',
+      justifyContent: 'space-between',
+      borderBottom: '1px solid var(--line)',
+      gap: '16px',
+    }}>
+      <button
+        onClick={onBack}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          background: 'transparent',
+          border: 'none',
+          padding: 0,
+          cursor: 'pointer',
+          ...metaLabelStyle,
+        }}
+        aria-label="Volver"
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12" />
+          <polyline points="12 19 5 12 12 5" />
+        </svg>
+        <span>{label}</span>
+      </button>
+      {right && <div>{right}</div>}
+    </div>
+  )
 }
 
 // ─── DEBT LABEL (hero "debe €xxx.xx" with tension-linked underline) ──────────
@@ -283,7 +339,7 @@ function RopeView({ currentUser, otherUser, balance, debugAmount, debugDirection
 
 // ─── TRANSACTIONS VIEW ───────────────────────────────────────────────────────
 
-function TransactionsView({ transactions, currentUser, user1, user2, onBack: _onBack }: {
+function TransactionsView({ transactions, currentUser, user1, user2, onBack }: {
   transactions: Transaction[]
   currentUser: UserProfile
   user1: UserProfile
@@ -322,38 +378,18 @@ function TransactionsView({ transactions, currentUser, user1, user2, onBack: _on
 
   return (
     <div className="animate-fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      {/* Heading strip — editorial style */}
-      <div style={{
-        padding: '22px 24px 14px',
-        display: 'flex',
-        alignItems: 'baseline',
-        justifyContent: 'space-between',
-        borderBottom: '1px solid var(--line)',
-      }}>
-        <span style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '10px',
-          fontWeight: 500,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: 'var(--text-3)',
-        }}>
-          registros · {transactions.length.toString().padStart(2, '0')}
-        </span>
-        <span style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '10px',
-          fontWeight: 500,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: 'var(--text-3)',
-        }}>
-          <span style={{ display: 'inline-block', width: '6px', height: '6px', background: 'var(--text)', marginRight: '6px', transform: 'translateY(-1px)' }} />
-          {user1.name.toLowerCase()}
-          <span style={{ display: 'inline-block', width: '6px', height: '6px', background: 'var(--red)', marginRight: '6px', marginLeft: '14px', transform: 'translateY(-1px)' }} />
-          {user2.name.toLowerCase()}
-        </span>
-      </div>
+      <SubViewHeader
+        label={`registros · ${transactions.length.toString().padStart(2, '0')}`}
+        onBack={onBack}
+        right={
+          <span style={metaLabelStyle}>
+            <span style={{ display: 'inline-block', width: '6px', height: '6px', background: 'var(--text)', marginRight: '6px', transform: 'translateY(-1px)' }} />
+            {user1.name.toLowerCase()}
+            <span style={{ display: 'inline-block', width: '6px', height: '6px', background: 'var(--red)', marginRight: '6px', marginLeft: '14px', transform: 'translateY(-1px)' }} />
+            {user2.name.toLowerCase()}
+          </span>
+        }
+      />
 
       {/* List */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -560,78 +596,82 @@ function AddView({ currentUser, onBack }: { currentUser: UserProfile; onBack: ()
     }
   }
 
+  const inputBase: CSSProperties = {
+    width: '100%',
+    background: 'transparent',
+    border: 'none',
+    borderBottom: '1px solid var(--line)',
+    borderRadius: 0,
+    padding: '10px 0',
+    fontSize: '16px',
+    color: 'var(--text)',
+    outline: 'none',
+  }
+
   return (
     <div className="animate-fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      {/* Header */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        padding: '16px 20px',
-        borderBottom: '1px solid var(--border)',
-        gap: '12px',
-      }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', padding: '4px' }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </button>
-        <span style={{ fontSize: '15px', fontWeight: '600' }}>Nueva transacción</span>
-      </div>
+      <SubViewHeader
+        label={type === 'settlement' ? 'añadir · nivelación' : 'añadir · gasto'}
+        onBack={onBack}
+      />
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '24px 20px' }}>
-        {/* Type toggle */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '6px',
-          background: 'rgba(0,0,0,0.05)',
-          borderRadius: '10px',
-          padding: '4px',
-          marginBottom: '20px',
-        }}>
-          {(['expense', 'settlement'] as const).map(t => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setType(t)}
-              style={{
-                padding: '9px',
-                borderRadius: '7px',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '13px',
-                fontWeight: '500',
-                transition: 'all 0.15s',
-                background: type === t ? 'var(--surface)' : 'transparent',
-                color: type === t ? 'var(--text)' : 'var(--text-3)',
-                boxShadow: type === t ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-              }}
-            >
-              {t === 'expense' ? '💳 Gasto' : '⇄ Nivelación'}
-            </button>
-          ))}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+        {/* Type toggle — minimal text with animated underline */}
+        <div style={{ display: 'flex', gap: '28px', marginBottom: '28px' }}>
+          {(['expense', 'settlement'] as const).map(t => {
+            const isActive = type === t
+            return (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setType(t)}
+                style={{
+                  position: 'relative',
+                  background: 'transparent',
+                  border: 'none',
+                  padding: '2px 0',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '11px',
+                  fontWeight: isActive ? 700 : 500,
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  color: 'var(--text)',
+                  opacity: isActive ? 1 : 0.4,
+                  transition: 'opacity 0.2s',
+                }}
+              >
+                {t === 'expense' ? 'gasto' : 'nivelación'}
+                <span
+                  aria-hidden
+                  style={{
+                    position: 'absolute',
+                    left: 0, right: 0, bottom: '-4px',
+                    height: '1.5px',
+                    background: 'var(--text)',
+                    transformOrigin: 'left center',
+                    transform: isActive ? 'scaleX(1)' : 'scaleX(0)',
+                    transition: 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                  }}
+                />
+              </button>
+            )
+          })}
         </div>
 
-        {type === 'settlement' && (
-          <div className="animate-slide-up" style={{
-            background: 'rgba(217,119,6,0.07)',
-            border: '1px solid rgba(217,119,6,0.2)',
-            borderRadius: '8px',
-            padding: '10px 14px',
-            fontSize: '13px',
-            color: 'var(--amber)',
-            marginBottom: '16px',
-          }}>
-            Pago directo para nivelar la balanza
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: type === 'expense' ? '1fr 1fr' : '1fr', gap: '12px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: 'var(--text-2)', marginBottom: '6px' }}>
-                Cantidad (€)
-              </label>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+          {/* Amount — hero field */}
+          <div>
+            <label style={{ ...metaLabelStyle, display: 'block', marginBottom: '8px' }}>
+              cantidad
+            </label>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'baseline', gap: '6px', borderBottom: '1px solid var(--line)' }}>
+              <span style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '28px',
+                fontWeight: 400,
+                color: 'var(--text-3)',
+              }}>€</span>
               <input
                 type="number"
                 value={amount}
@@ -641,21 +681,32 @@ function AddView({ currentUser, onBack }: { currentUser: UserProfile; onBack: ()
                 min="0.01"
                 required
                 autoFocus
+                inputMode="decimal"
+                style={{
+                  ...inputBase,
+                  borderBottom: 'none',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '28px',
+                  fontWeight: 700,
+                  letterSpacing: '-0.01em',
+                  padding: '8px 0',
+                }}
               />
             </div>
-            {type === 'expense' && (
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: 'var(--text-2)', marginBottom: '6px' }}>
-                  Categoría
-                </label>
-                <Select value={category} onValueChange={setCategory} options={CATEGORIES} />
-              </div>
-            )}
           </div>
 
+          {type === 'expense' && (
+            <div>
+              <label style={{ ...metaLabelStyle, display: 'block', marginBottom: '8px' }}>
+                categoría
+              </label>
+              <Select value={category} onValueChange={setCategory} options={CATEGORIES} />
+            </div>
+          )}
+
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: 'var(--text-2)', marginBottom: '6px' }}>
-              Descripción
+            <label style={{ ...metaLabelStyle, display: 'block', marginBottom: '8px' }}>
+              descripción
             </label>
             <input
               type="text"
@@ -663,11 +714,30 @@ function AddView({ currentUser, onBack }: { currentUser: UserProfile; onBack: ()
               onChange={e => setDescription(e.target.value)}
               placeholder={type === 'settlement' ? 'Transferencia para nivelar…' : 'Dominio, Claude Code…'}
               required
+              style={inputBase}
             />
           </div>
 
+          {type === 'settlement' && (
+            <p className="animate-slide-up" style={{
+              ...metaLabelStyle,
+              color: 'var(--red)',
+              letterSpacing: '0.18em',
+            }}>
+              pago directo para nivelar la balanza
+            </p>
+          )}
+
           {error && (
-            <p className="animate-slide-up" style={{ fontSize: '13px', color: 'var(--red)' }}>{error}</p>
+            <p className="animate-slide-up" style={{
+              ...metaLabelStyle,
+              color: 'var(--red)',
+              letterSpacing: '0.14em',
+              textTransform: 'none',
+              fontSize: '12px',
+            }}>
+              {error}
+            </p>
           )}
 
           <button
@@ -675,20 +745,22 @@ function AddView({ currentUser, onBack }: { currentUser: UserProfile; onBack: ()
             disabled={submitting}
             style={{
               width: '100%',
-              padding: '12px',
-              background: submitting ? 'rgba(0,0,0,0.04)' : 'var(--text)',
-              color: submitting ? 'var(--text-3)' : 'var(--bg)',
+              padding: '18px',
+              marginTop: '8px',
+              background: submitting ? 'var(--text-3)' : 'var(--text)',
+              color: 'var(--bg)',
               border: 'none',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: '600',
+              borderRadius: 0,
+              fontFamily: 'var(--font-mono)',
+              fontSize: '12px',
+              fontWeight: 700,
+              letterSpacing: '0.28em',
+              textTransform: 'uppercase',
               cursor: submitting ? 'not-allowed' : 'pointer',
-              opacity: submitting ? 0.6 : 1,
-              transition: 'opacity 0.15s',
-              marginTop: '4px',
+              transition: 'background 0.2s',
             }}
           >
-            {submitting ? 'Guardando…' : 'Añadir'}
+            {submitting ? 'guardando…' : '→  añadir'}
           </button>
         </form>
       </div>
@@ -708,101 +780,101 @@ function SettingsView({ currentUser, otherUser, onBack, onLogout, debugAmount, d
   setDebugAmount: (v: number | null) => void
   setDebugDirection: (v: number) => void
 }) {
+  const debugOn = debugAmount !== null
+  const participants = [
+    { u: currentUser, color: 'var(--text)' as const },
+    { u: otherUser,   color: 'var(--red)'  as const },
+  ]
+
   return (
     <div className="animate-fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        padding: '16px 20px',
-        borderBottom: '1px solid var(--border)',
-        gap: '12px',
-      }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', padding: '4px' }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </button>
-        <span style={{ fontSize: '15px', fontWeight: '600' }}>Ajustes</span>
-      </div>
+      <SubViewHeader label="ajustes" onBack={onBack} />
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        {/* Profiles */}
-        <div>
-          <p style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '12px' }}>
-            Participantes
-          </p>
-          {[currentUser, otherUser].map(u => (
+      <div style={{ flex: 1, overflowY: 'auto', padding: '24px 24px 32px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        {/* Participantes */}
+        <section>
+          <span style={sectionTitleStyle}>participantes</span>
+          {participants.map(({ u, color }) => (
             <div key={u.uid} style={{
               display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '12px 0',
-              borderBottom: '1px solid var(--border)',
+              alignItems: 'baseline',
+              gap: '14px',
+              padding: '14px 0',
+              borderTop: '1px solid var(--line)',
             }}>
-              <span style={{ fontSize: '24px' }}>{u.emoji}</span>
-              <div>
-                <p style={{ fontSize: '14px', fontWeight: '600' }}>
-                  {u.name} {u.uid === currentUser.uid && <span style={{ fontSize: '11px', color: 'var(--text-3)', fontWeight: '400' }}>(tú)</span>}
-                </p>
-                <p style={{ fontSize: '12px', color: 'var(--text-3)' }}>{u.username}</p>
-              </div>
+              <span style={{
+                display: 'inline-block',
+                width: '8px', height: '8px',
+                background: color,
+                flexShrink: 0,
+                transform: 'translateY(1px)',
+              }} />
+              <span style={{
+                flex: 1,
+                fontFamily: 'var(--font-mono)',
+                fontSize: '14px',
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                color: 'var(--text)',
+              }}>
+                {u.name.toLowerCase()}
+                {u.uid === currentUser.uid && (
+                  <span style={{ ...metaLabelStyle, marginLeft: '10px' }}>(tú)</span>
+                )}
+              </span>
+              <span style={metaLabelStyle}>@{u.username}</span>
             </div>
           ))}
-        </div>
+        </section>
 
         {/* Debug */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <p style={{ fontSize: '11px', fontWeight: '600', color: '#9333ea', letterSpacing: '1px', textTransform: 'uppercase', fontFamily: 'monospace' }}>
-              Debug
-            </p>
-            {/* Toggle */}
+        <section>
+          <div style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            justifyContent: 'space-between',
+            marginBottom: '14px',
+          }}>
+            <span style={metaLabelStyle}>debug</span>
             <button
-              onClick={() => setDebugAmount(debugAmount === null ? 0 : null)}
+              onClick={() => setDebugAmount(debugOn ? null : 0)}
               style={{
-                width: '40px',
-                height: '22px',
-                borderRadius: '11px',
+                background: 'transparent',
                 border: 'none',
+                padding: 0,
                 cursor: 'pointer',
-                background: debugAmount !== null ? '#9333ea' : 'rgba(0,0,0,0.12)',
-                position: 'relative',
-                transition: 'background 0.2s',
-                flexShrink: 0,
+                fontFamily: 'var(--font-mono)',
+                fontSize: '10px',
+                fontWeight: 700,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: debugOn ? 'var(--red)' : 'var(--text-3)',
               }}
             >
-              <span style={{
-                position: 'absolute',
-                top: '3px',
-                left: debugAmount !== null ? '21px' : '3px',
-                width: '16px',
-                height: '16px',
-                borderRadius: '50%',
-                background: 'white',
-                transition: 'left 0.2s',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-              }} />
+              {debugOn ? '● on' : '○ off'}
             </button>
           </div>
 
-          {debugAmount !== null && (
+          {debugOn && (
             <div className="animate-slide-up" style={{
-              background: 'rgba(147,51,234,0.05)',
-              border: '1px solid rgba(147,51,234,0.2)',
-              borderRadius: '10px',
-              padding: '16px',
+              borderTop: '1px solid var(--line)',
+              paddingTop: '18px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '14px',
+              gap: '18px',
             }}>
-              {/* Amount slider */}
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <label style={{ fontSize: '12px', color: '#9333ea', fontFamily: 'monospace' }}>
-                    balance ficticio
-                  </label>
-                  <span style={{ fontSize: '12px', fontWeight: '700', color: '#9333ea', fontFamily: 'monospace' }}>
-                    €{debugAmount.toFixed(0)}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '10px' }}>
+                  <span style={metaLabelStyle}>balance ficticio</span>
+                  <span style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '16px',
+                    fontWeight: 700,
+                    color: 'var(--text)',
+                    fontVariantNumeric: 'tabular-nums',
+                  }}>
+                    <span style={{ color: 'var(--text-3)', fontWeight: 400, marginRight: '2px' }}>€</span>
+                    {debugAmount!.toFixed(0)}
                   </span>
                 </div>
                 <input
@@ -810,95 +882,106 @@ function SettingsView({ currentUser, otherUser, onBack, onLogout, debugAmount, d
                   min="0"
                   max="500"
                   step="1"
-                  value={debugAmount}
+                  value={debugAmount!}
                   onChange={e => setDebugAmount(parseFloat(e.target.value))}
                   style={{
                     width: '100%',
-                    accentColor: '#9333ea',
+                    accentColor: 'var(--red)',
                     cursor: 'pointer',
-                    height: 'auto',
-                    padding: 0,
-                    border: 'none',
                     background: 'transparent',
+                    border: 'none',
                     borderRadius: 0,
+                    padding: 0,
                   }}
                 />
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
-                  <span style={{ fontSize: '10px', color: 'var(--text-3)', fontFamily: 'monospace' }}>€0</span>
-                  <span style={{ fontSize: '10px', color: 'var(--text-3)', fontFamily: 'monospace' }}>€500</span>
-                </div>
               </div>
 
-              {/* Direction toggle */}
               <div>
-                <label style={{ fontSize: '12px', color: '#9333ea', fontFamily: 'monospace', display: 'block', marginBottom: '8px' }}>
-                  dirección
-                </label>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr 1fr',
-                  gap: '4px',
-                  background: 'rgba(0,0,0,0.05)',
-                  borderRadius: '8px',
-                  padding: '3px',
-                }}>
+                <span style={{ ...sectionTitleStyle, marginBottom: '10px' }}>dirección</span>
+                <div style={{ display: 'flex', gap: '24px' }}>
                   {[
-                    { value: -1, label: '↑ arriba' },
-                    { value:  0, label: '— plana' },
-                    { value:  1, label: '↓ abajo' },
-                  ].map(opt => (
-                    <button
-                      key={opt.value}
-                      onClick={() => setDebugDirection(opt.value)}
-                      style={{
-                        padding: '6px 4px',
-                        borderRadius: '6px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: '11px',
-                        fontFamily: 'monospace',
-                        background: debugDirection === opt.value ? '#9333ea' : 'transparent',
-                        color: debugDirection === opt.value ? 'white' : 'var(--text-3)',
-                        transition: 'all 0.15s',
-                      }}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
+                    { value: -1, label: 'arriba' },
+                    { value:  0, label: 'plana'  },
+                    { value:  1, label: 'abajo'  },
+                  ].map(opt => {
+                    const isActive = debugDirection === opt.value
+                    return (
+                      <button
+                        key={opt.value}
+                        onClick={() => setDebugDirection(opt.value)}
+                        style={{
+                          position: 'relative',
+                          background: 'transparent',
+                          border: 'none',
+                          padding: '2px 0',
+                          cursor: 'pointer',
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '10px',
+                          fontWeight: isActive ? 700 : 500,
+                          letterSpacing: '0.22em',
+                          textTransform: 'uppercase',
+                          color: 'var(--text)',
+                          opacity: isActive ? 1 : 0.4,
+                          transition: 'opacity 0.2s',
+                        }}
+                      >
+                        {opt.label}
+                        <span
+                          aria-hidden
+                          style={{
+                            position: 'absolute',
+                            left: 0, right: 0, bottom: '-4px',
+                            height: '1.5px',
+                            background: 'var(--text)',
+                            transformOrigin: 'left center',
+                            transform: isActive ? 'scaleX(1)' : 'scaleX(0)',
+                            transition: 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                          }}
+                        />
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             </div>
           )}
-        </div>
+        </section>
 
         {/* Version */}
-        <div>
-          <p style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px' }}>
-            App
-          </p>
-          <p style={{ fontSize: '13px', color: 'var(--text-2)' }}>CashBros v0.3.3</p>
-        </div>
+        <section style={{ marginTop: 'auto' }}>
+          <span style={sectionTitleStyle}>app</span>
+          <span style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '12px',
+            letterSpacing: '0.08em',
+            color: 'var(--text-2)',
+          }}>
+            cashbros · v0.3.4
+          </span>
+        </section>
 
         {/* Logout */}
         <button
           onClick={onLogout}
           style={{
             width: '100%',
-            padding: '12px',
+            padding: '18px',
             background: 'transparent',
             color: 'var(--red)',
-            border: '1px solid rgba(192,57,43,0.3)',
-            borderRadius: '8px',
-            fontSize: '14px',
-            fontWeight: '500',
+            border: '1px solid var(--red)',
+            borderRadius: 0,
+            fontFamily: 'var(--font-mono)',
+            fontSize: '11px',
+            fontWeight: 700,
+            letterSpacing: '0.28em',
+            textTransform: 'uppercase',
             cursor: 'pointer',
-            transition: 'background 0.15s',
-            marginTop: 'auto',
+            transition: 'background 0.2s, color 0.2s',
           }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(192,57,43,0.05)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--red)'; e.currentTarget.style.color = '#fff' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--red)' }}
         >
-          Cerrar sesión
+          cerrar sesión
         </button>
       </div>
     </div>
