@@ -30,53 +30,84 @@ function formatDate(d: Date) {
   return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', '')
 }
 
+// ─── DEBT LABEL (hero "debe €xxx.xx" with tension-linked underline) ──────────
+
+function DebtLabel({ show, amount, tension, align }: {
+  show: boolean
+  amount: number
+  tension: number
+  align: 'left' | 'right'
+}) {
+  if (!show) return null
+  const amountText = amount.toFixed(2)
+  const underlinePct = Math.max(0.15, Math.min(1, tension)) * 100
+
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: align === 'left' ? 'flex-start' : 'flex-end',
+      gap: '6px',
+      marginBottom: align === 'left' ? '10px' : 0,
+      marginTop: align === 'right' ? '10px' : 0,
+    }}>
+      <span style={{
+        fontFamily: 'var(--font-mono)',
+        fontSize: '10px',
+        fontWeight: 500,
+        letterSpacing: '0.22em',
+        textTransform: 'uppercase',
+        color: 'var(--text-3)',
+      }}>
+        debe
+      </span>
+      <div style={{ position: 'relative', display: 'inline-block' }}>
+        <span style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '44px',
+          fontWeight: 700,
+          lineHeight: 1,
+          color: 'var(--text)',
+          fontVariantNumeric: 'tabular-nums',
+          letterSpacing: '-0.02em',
+        }}>
+          <span style={{ color: 'var(--text-3)', fontWeight: 400, marginRight: '2px' }}>€</span>
+          {amountText}
+        </span>
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute',
+            left: align === 'left' ? 0 : 'auto',
+            right: align === 'right' ? 0 : 'auto',
+            bottom: '-6px',
+            height: '2px',
+            width: `${underlinePct}%`,
+            background: 'var(--red)',
+            transition: 'width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)',
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
 // ─── NAV BAR ─────────────────────────────────────────────────────────────────
 
 function NavBar({ active, onNavigate }: { active: View; onNavigate: (v: View) => void }) {
-  const items: { view: View; icon: JSX.Element; label: string }[] = [
-    {
-      view: 'transactions',
-      label: 'Registros',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="8" y1="6"  x2="21" y2="6"  />
-          <line x1="8" y1="12" x2="21" y2="12" />
-          <line x1="8" y1="18" x2="21" y2="18" />
-          <line x1="3" y1="6"  x2="3.01" y2="6"  />
-          <line x1="3" y1="12" x2="3.01" y2="12" />
-          <line x1="3" y1="18" x2="3.01" y2="18" />
-        </svg>
-      ),
-    },
-    {
-      view: 'add',
-      label: 'Añadir',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="8" x2="12" y2="16" />
-          <line x1="8"  y1="12" x2="16" y2="12" />
-        </svg>
-      ),
-    },
-    {
-      view: 'settings',
-      label: 'Ajustes',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="3" />
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-        </svg>
-      ),
-    },
+  const items: { view: View; label: string; num: string }[] = [
+    { view: 'transactions', label: 'registros', num: '01' },
+    { view: 'add',          label: 'añadir',    num: '02' },
+    { view: 'settings',     label: 'ajustes',   num: '03' },
   ]
 
   return (
     <div style={{
       display: 'grid',
       gridTemplateColumns: '1fr 1fr 1fr',
-      borderTop: '1px solid var(--border)',
+      borderTop: '1px solid var(--line)',
       background: 'var(--bg)',
+      fontFamily: 'var(--font-mono)',
     }}>
       {items.map(item => {
         const isActive = active === item.view
@@ -85,22 +116,52 @@ function NavBar({ active, onNavigate }: { active: View; onNavigate: (v: View) =>
             key={item.view}
             onClick={() => onNavigate(active === item.view ? 'home' : item.view)}
             style={{
+              position: 'relative',
               display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
+              alignItems: 'baseline',
               justifyContent: 'center',
-              gap: '4px',
-              padding: '12px 8px 10px',
+              gap: '8px',
+              padding: '18px 8px 20px',
               border: 'none',
               background: 'transparent',
               cursor: 'pointer',
-              color: isActive ? 'var(--text)' : 'var(--text-3)',
-              transition: 'color 0.15s',
+              color: 'var(--text)',
+              fontFamily: 'var(--font-mono)',
+              transition: 'opacity 0.2s',
+              opacity: isActive ? 1 : 0.45,
             }}
           >
-            {item.icon}
-            <span style={{ fontSize: '10px', fontWeight: isActive ? '600' : '400', letterSpacing: '0.3px' }}>
+            <span style={{
+              fontSize: '10px',
+              fontWeight: 500,
+              letterSpacing: '0.04em',
+              color: 'var(--text-3)',
+              fontVariantNumeric: 'tabular-nums',
+            }}>
+              {item.num}
+            </span>
+            <span style={{
+              position: 'relative',
+              fontSize: '12px',
+              fontWeight: isActive ? 700 : 500,
+              letterSpacing: '0.02em',
+              textTransform: 'lowercase',
+            }}>
               {item.label}
+              <span
+                aria-hidden
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  bottom: '-6px',
+                  height: '1.5px',
+                  background: 'var(--text)',
+                  transformOrigin: 'left center',
+                  transform: isActive ? 'scaleX(1)' : 'scaleX(0)',
+                  transition: 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                }}
+              />
             </span>
           </button>
         )
@@ -138,46 +199,63 @@ function RopeView({ currentUser, otherUser, balance, debugAmount, debugDirection
         <RopeCanvas tensionLevel={tensionLevel} tensionDirection={effectiveDirection} />
       </div>
 
-      {/* Top name (current user) */}
+      {/* Top block — current user (aligned left) */}
       <div style={{
         position: 'absolute',
-        top: '28px',
-        left: 0,
-        right: 0,
-        textAlign: 'center',
+        top: '32px',
+        left: '24px',
+        right: '24px',
+        textAlign: 'left',
         pointerEvents: 'none',
       }}>
-        <p style={{ fontSize: '40px', fontWeight: '700', letterSpacing: '-1.5px', color: 'var(--text)', lineHeight: 1 }}>
-          {currentUser.name}
+        <DebtLabel show={owingIsTop} amount={balance.amount} tension={tensionLevel} align="left" />
+        <p style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: '84px',
+          fontWeight: 900,
+          fontStyle: owingIsTop ? 'italic' : 'normal',
+          letterSpacing: '-0.045em',
+          color: 'var(--text)',
+          lineHeight: 0.92,
+          fontOpticalSizing: 'auto',
+        }}>
+          {currentUser.name.toLowerCase()}
         </p>
-        {owingIsTop && (
-          <p style={{ fontSize: '14px', color: 'var(--red)', marginTop: '6px', fontWeight: '500' }}>
-            debe {formatEuro(balance.amount)}
-          </p>
-        )}
       </div>
 
-      {/* Bottom name (other user) */}
+      {/* Bottom block — other user (aligned right) */}
       <div style={{
         position: 'absolute',
-        bottom: '28px',
-        left: 0,
-        right: 0,
-        textAlign: 'center',
+        bottom: '32px',
+        left: '24px',
+        right: '24px',
+        textAlign: 'right',
         pointerEvents: 'none',
       }}>
         {otherUser.uid === 'placeholder' ? (
-          <p style={{ fontSize: '20px', color: 'var(--text-3)' }}>…</p>
+          <p style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: '84px',
+            fontWeight: 900,
+            color: 'var(--text-3)',
+            lineHeight: 0.92,
+            letterSpacing: '-0.045em',
+          }}>…</p>
         ) : (
           <>
-            {owingIsBottom && (
-              <p style={{ fontSize: '14px', color: 'var(--red)', marginBottom: '6px', fontWeight: '500' }}>
-                debe {formatEuro(balance.amount)}
-              </p>
-            )}
-            <p style={{ fontSize: '40px', fontWeight: '700', letterSpacing: '-1.5px', color: 'var(--text)', lineHeight: 1 }}>
-              {otherUser.name}
+            <p style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '84px',
+              fontWeight: 900,
+              fontStyle: owingIsBottom ? 'italic' : 'normal',
+              letterSpacing: '-0.045em',
+              color: 'var(--text)',
+              lineHeight: 0.92,
+              fontOpticalSizing: 'auto',
+            }}>
+              {otherUser.name.toLowerCase()}
             </p>
+            <DebtLabel show={owingIsBottom} amount={balance.amount} tension={tensionLevel} align="right" />
           </>
         )}
       </div>
@@ -702,7 +780,7 @@ function SettingsView({ currentUser, otherUser, onBack, onLogout, debugAmount, d
           <p style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px' }}>
             App
           </p>
-          <p style={{ fontSize: '13px', color: 'var(--text-2)' }}>CashBros v0.2.0</p>
+          <p style={{ fontSize: '13px', color: 'var(--text-2)' }}>CashBros v0.3.0</p>
         </div>
 
         {/* Logout */}

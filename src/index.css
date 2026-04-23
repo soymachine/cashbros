@@ -6,12 +6,16 @@
   --bg:        #ffffff;
   --surface:   #ffffff;
   --border:    rgba(0, 0, 0, 0.08);
-  --text:      #0d0d0d;
+  --text:      #0a0a0a;
   --text-2:    #6b6b65;
   --text-3:    #b0afa9;
-  --red:       #c0392b;
+  --line:      rgba(0, 0, 0, 0.12);
+  --red:       #ff3b30;
   --green:     #27ae60;
   --amber:     #d97706;
+
+  --font-display: 'Fraunces', 'Times New Roman', serif;
+  --font-mono:    'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
 }
 
 * {
@@ -42,6 +46,14 @@ body {
 
 .font-receipt {
   font-family: 'Share Tech Mono', monospace;
+}
+.font-display { font-family: var(--font-display); }
+.font-mono    { font-family: var(--font-mono); }
+
+/* Tension underline under the "debe" amount — width is driven inline via CSS var */
+@keyframes nav-underline-in {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
 }
 
 /* Scrollbar */
