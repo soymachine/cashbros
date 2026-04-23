@@ -101,8 +101,7 @@ function DebtLabel({ show, amount, tension, align }: {
       flexDirection: 'column',
       alignItems: align === 'left' ? 'flex-start' : 'flex-end',
       gap: '6px',
-      marginBottom: align === 'left' ? '10px' : 0,
-      marginTop: align === 'right' ? '10px' : 0,
+      marginTop: '12px',
     }}>
       <span style={{
         fontFamily: 'var(--font-mono)',
@@ -261,12 +260,10 @@ function RopeView({ currentUser, otherUser, balance, debugAmount, debugDirection
         textAlign: 'left',
         pointerEvents: 'none',
       }}>
-        <DebtLabel show={owingIsTop} amount={balance.amount} tension={tensionLevel} align="left" />
         <p style={{
           fontFamily: 'var(--font-display)',
           fontSize: '84px',
           fontWeight: 900,
-          fontStyle: owingIsTop ? 'italic' : 'normal',
           letterSpacing: '-0.045em',
           color: 'var(--text)',
           lineHeight: 0.92,
@@ -274,6 +271,7 @@ function RopeView({ currentUser, otherUser, balance, debugAmount, debugDirection
         }}>
           {currentUser.name.toLowerCase()}
         </p>
+        <DebtLabel show={owingIsTop} amount={balance.amount} tension={tensionLevel} align="left" />
       </div>
 
       {/* Bottom block — other user (aligned right) */}
@@ -300,7 +298,6 @@ function RopeView({ currentUser, otherUser, balance, debugAmount, debugDirection
               fontFamily: 'var(--font-display)',
               fontSize: '84px',
               fontWeight: 900,
-              fontStyle: owingIsBottom ? 'italic' : 'normal',
               letterSpacing: '-0.045em',
               color: 'var(--text)',
               lineHeight: 0.92,
@@ -956,7 +953,7 @@ function SettingsView({ currentUser, otherUser, onBack, onLogout, debugAmount, d
             letterSpacing: '0.08em',
             color: 'var(--text-2)',
           }}>
-            cashbros · v0.3.4
+            cashbros · v0.3.5
           </span>
         </section>
 
