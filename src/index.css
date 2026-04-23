@@ -16,6 +16,8 @@
 
   --font-display: 'Fraunces', 'Times New Roman', serif;
   --font-mono:    'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+
+  --nav-h: 58px;
 }
 
 * {

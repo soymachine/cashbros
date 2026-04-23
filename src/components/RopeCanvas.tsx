@@ -48,7 +48,7 @@ function drawGrid(
   const cellH = height / (rows - 1)
 
   ctx.save()
-  ctx.strokeStyle = 'rgba(0,0,0,0.055)'
+  ctx.strokeStyle = 'rgba(255,59,48,0.16)'
   ctx.lineWidth   = 0.6
 
   for (let r = 0; r < rows; r++) {

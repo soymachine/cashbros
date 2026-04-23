@@ -780,7 +780,7 @@ function SettingsView({ currentUser, otherUser, onBack, onLogout, debugAmount, d
           <p style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px' }}>
             App
           </p>
-          <p style={{ fontSize: '13px', color: 'var(--text-2)' }}>CashBros v0.3.0</p>
+          <p style={{ fontSize: '13px', color: 'var(--text-2)' }}>CashBros v0.3.1</p>
         </div>
 
         {/* Logout */}
@@ -831,54 +831,84 @@ export default function Home({ currentUser, otherUser, onLogout }: HomeProps) {
     setView(v)
   }
 
+  const isSub = view !== 'home'
+
   return (
     <div style={{
       height: '100dvh',
-      display: 'flex',
-      flexDirection: 'column',
       background: 'var(--bg)',
       maxWidth: '480px',
       margin: '0 auto',
       overflow: 'hidden',
       paddingTop: 'env(safe-area-inset-top)',
       paddingBottom: 'env(safe-area-inset-bottom)',
+      display: 'flex',
+      flexDirection: 'column',
     }}>
-      {/* Main content area */}
-      {view === 'home' && (
-        <RopeView
-          currentUser={currentUser}
-          otherUser={otherUser}
-          balance={balance}
-          debugAmount={debugAmount}
-          debugDirection={debugDirection}
-        />
-      )}
-      {view === 'transactions' && (
-        <TransactionsView
-          transactions={transactions}
-          currentUser={currentUser}
-          user1={user1}
-          onBack={() => setView('home')}
-        />
-      )}
-      {view === 'add' && (
-        <AddView currentUser={currentUser} onBack={() => setView('home')} />
-      )}
-      {view === 'settings' && (
-        <SettingsView
-          currentUser={currentUser}
-          otherUser={otherUser}
-          onBack={() => setView('home')}
-          onLogout={onLogout}
-          debugAmount={debugAmount}
-          debugDirection={debugDirection}
-          setDebugAmount={setDebugAmount}
-          setDebugDirection={setDebugDirection}
-        />
-      )}
+      <div style={{
+        flex: 1,
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          transform: isSub ? 'translateY(-50%)' : 'translateY(0)',
+          transition: 'transform 0.55s cubic-bezier(0.2, 0.85, 0.25, 1)',
+          willChange: 'transform',
+        }}>
+          {/* Panel 1 — rope (full content height) */}
+          <div style={{ height: '100%', flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
+            <RopeView
+              currentUser={currentUser}
+              otherUser={otherUser}
+              balance={balance}
+              debugAmount={debugAmount}
+              debugDirection={debugDirection}
+            />
+          </div>
 
-      {/* Nav bar */}
-      <NavBar active={view} onNavigate={navigate} />
+          {/* Nav — travels between bottom (home) and top (sub) */}
+          <div style={{ flexShrink: 0 }}>
+            <NavBar active={view} onNavigate={navigate} />
+          </div>
+
+          {/* Panel 2 — subview (content height minus nav) */}
+          <div style={{
+            height: 'calc(100% - var(--nav-h))',
+            flexShrink: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          }}>
+            {view === 'transactions' && (
+              <TransactionsView
+                transactions={transactions}
+                currentUser={currentUser}
+                user1={user1}
+                onBack={() => setView('home')}
+              />
+            )}
+            {view === 'add' && (
+              <AddView currentUser={currentUser} onBack={() => setView('home')} />
+            )}
+            {view === 'settings' && (
+              <SettingsView
+                currentUser={currentUser}
+                otherUser={otherUser}
+                onBack={() => setView('home')}
+                onLogout={onLogout}
+                debugAmount={debugAmount}
+                debugDirection={debugDirection}
+                setDebugAmount={setDebugAmount}
+                setDebugDirection={setDebugDirection}
+              />
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
