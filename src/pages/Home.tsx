@@ -286,13 +286,15 @@ function RopeView({ currentUser, otherUser, balance, debugAmount, debugDirection
 
 // ─── TRANSACTIONS VIEW ───────────────────────────────────────────────────────
 
-function TransactionsView({ transactions, currentUser, user1, onBack }: {
+function TransactionsView({ transactions, currentUser, user1, user2, onBack: _onBack }: {
   transactions: Transaction[]
   currentUser: UserProfile
   user1: UserProfile
+  user2: UserProfile
   onBack: () => void
 }) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
 
   const totalGastado = transactions
     .filter(tx => tx.type === 'expense')
@@ -302,123 +304,220 @@ function TransactionsView({ transactions, currentUser, user1, onBack }: {
     setDeletingId(tx.id)
     try { await deleteTransaction(tx.id) }
     catch (e) { console.error(e) }
-    finally { setDeletingId(null) }
+    finally { setDeletingId(null); setConfirmingId(null) }
+  }
+
+  // user1 -> first color marker, other -> second. Neutral squares to signal identity without color noise.
+  function payerMarker(tx: Transaction) {
+    const isUser1 = tx.payerId === user1.uid
+    return (
+      <span style={{
+        display: 'inline-block',
+        width: '6px',
+        height: '6px',
+        background: isUser1 ? 'var(--text)' : 'var(--red)',
+        marginRight: '8px',
+        verticalAlign: 'middle',
+        transform: 'translateY(-1px)',
+      }} />
+    )
   }
 
   return (
     <div className="animate-fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      {/* Header */}
+      {/* Heading strip — editorial style */}
       <div style={{
+        padding: '22px 24px 14px',
         display: 'flex',
-        alignItems: 'center',
-        padding: '16px 20px',
-        borderBottom: '1px solid var(--border)',
-        gap: '12px',
+        alignItems: 'baseline',
+        justifyContent: 'space-between',
+        borderBottom: '1px solid var(--line)',
       }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', padding: '4px' }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </button>
-        <span style={{ fontSize: '15px', fontWeight: '600' }}>Registros</span>
+        <span style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '10px',
+          fontWeight: 500,
+          letterSpacing: '0.22em',
+          textTransform: 'uppercase',
+          color: 'var(--text-3)',
+        }}>
+          registros · {transactions.length.toString().padStart(2, '0')}
+        </span>
+        <span style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '10px',
+          fontWeight: 500,
+          letterSpacing: '0.22em',
+          textTransform: 'uppercase',
+          color: 'var(--text-3)',
+        }}>
+          <span style={{ display: 'inline-block', width: '6px', height: '6px', background: 'var(--text)', marginRight: '6px', transform: 'translateY(-1px)' }} />
+          {user1.name.toLowerCase()}
+          <span style={{ display: 'inline-block', width: '6px', height: '6px', background: 'var(--red)', marginRight: '6px', marginLeft: '14px', transform: 'translateY(-1px)' }} />
+          {user2.name.toLowerCase()}
+        </span>
       </div>
 
       {/* List */}
-      <div className="font-receipt" style={{ flex: 1, overflowY: 'auto', padding: '0' }}>
+      <div style={{ flex: 1, overflowY: 'auto' }}>
         {transactions.length === 0 ? (
-          <p style={{ textAlign: 'center', padding: '48px 24px', fontSize: '13px', color: 'var(--text-3)' }}>
-            Sin transacciones todavía
+          <p style={{
+            textAlign: 'center',
+            padding: '64px 24px',
+            fontSize: '11px',
+            fontFamily: 'var(--font-mono)',
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            color: 'var(--text-3)',
+          }}>
+            sin transacciones
           </p>
         ) : (
-          <>
-            {transactions.map((tx, idx) => {
-              const isOwn = tx.payerId === currentUser.uid
-              const isSettlement = tx.type === 'settlement'
-              const payerColor = tx.payerId === user1.uid ? '#0077cc' : '#d97706'
+          transactions.map((tx, idx) => {
+            const isOwn = tx.payerId === currentUser.uid
+            const isSettlement = tx.type === 'settlement'
+            const isConfirming = confirmingId === tx.id
+            const isDeleting = deletingId === tx.id
 
-              return (
-                <div key={tx.id}>
-                  {idx > 0 && <div style={{ borderTop: '1px dashed rgba(0,0,0,0.06)', margin: '0 20px' }} />}
-                  <div
-                    style={{
-                      padding: '12px 20px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      gap: '12px',
-                      background: isSettlement ? 'rgba(217,119,6,0.03)' : 'transparent',
-                    }}
-                  >
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
-                        <span style={{ fontSize: '10px', color: 'var(--text-3)' }}>{formatDate(tx.createdAt)}</span>
-                        {isSettlement && <span style={{ fontSize: '10px', color: 'var(--amber)' }}>⇄ nivelación</span>}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <span style={{ fontSize: '12px', fontWeight: '700', color: payerColor }}>{tx.payerName}</span>
-                        <span style={{ color: 'var(--text-3)', fontSize: '10px' }}>·</span>
-                        <span style={{ fontSize: '13px', color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {tx.description}
-                        </span>
-                      </div>
-                      {!isSettlement && (
-                        <span style={{
-                          display: 'inline-block',
-                          marginTop: '4px',
+            return (
+              <div
+                key={tx.id}
+                style={{
+                  padding: '16px 24px',
+                  borderTop: idx === 0 ? 'none' : '1px solid var(--line)',
+                  display: 'grid',
+                  gridTemplateColumns: '1fr auto',
+                  columnGap: '16px',
+                  rowGap: '6px',
+                  alignItems: 'baseline',
+                }}
+              >
+                {/* Row 1: date + amount */}
+                <span style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '10px',
+                  fontWeight: 500,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  color: 'var(--text-3)',
+                }}>
+                  {String(idx + 1).padStart(2, '0')} · {formatDate(tx.createdAt)}
+                  {isSettlement && <span style={{ marginLeft: '8px', color: 'var(--red)' }}>· nivelación</span>}
+                </span>
+                <span style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '22px',
+                  fontWeight: 700,
+                  lineHeight: 1,
+                  color: 'var(--text)',
+                  fontVariantNumeric: 'tabular-nums',
+                  letterSpacing: '-0.01em',
+                }}>
+                  <span style={{ color: 'var(--text-3)', fontWeight: 400, marginRight: '2px' }}>€</span>
+                  {tx.amount.toFixed(2)}
+                </span>
+
+                {/* Row 2: payer + description + delete */}
+                <span style={{
+                  fontSize: '14px',
+                  color: 'var(--text)',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  minWidth: 0,
+                }}>
+                  {payerMarker(tx)}
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-2)', marginRight: '8px' }}>
+                    {tx.payerName.toLowerCase()}
+                  </span>
+                  <span>{tx.description}</span>
+                </span>
+                <span style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '10px',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  color: 'var(--text-3)',
+                }}>
+                  {!isSettlement && <span>{tx.category}</span>}
+                  {isOwn && (
+                    isConfirming ? (
+                      <button
+                        onClick={() => handleDelete(tx)}
+                        disabled={isDeleting}
+                        style={{
+                          fontFamily: 'var(--font-mono)',
                           fontSize: '10px',
+                          letterSpacing: '0.18em',
+                          textTransform: 'uppercase',
+                          background: 'var(--red)',
+                          color: '#fff',
+                          border: 'none',
+                          padding: '3px 8px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {isDeleting ? '…' : 'borrar'}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmingId(tx.id)}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
                           color: 'var(--text-3)',
-                          background: 'rgba(0,0,0,0.04)',
-                          borderRadius: '4px',
-                          padding: '1px 6px',
-                        }}>
-                          {tx.category}
-                        </span>
-                      )}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-                      <span style={{ fontSize: '14px', fontWeight: '600', color: isSettlement ? 'var(--amber)' : 'var(--text)' }}>
-                        {formatEuro(tx.amount)}
-                      </span>
-                      {isOwn && (
-                        <button
-                          onClick={() => handleDelete(tx)}
-                          disabled={deletingId === tx.id}
-                          style={{
-                            fontSize: '12px',
-                            color: 'var(--text-3)',
-                            background: 'transparent',
-                            border: 'none',
-                            cursor: deletingId === tx.id ? 'not-allowed' : 'pointer',
-                            opacity: deletingId === tx.id ? 0.4 : 1,
-                            padding: '2px 4px',
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.color = 'var(--red)'}
-                          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}
-                        >
-                          {deletingId === tx.id ? '…' : '✕'}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </>
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          padding: '0 2px',
+                          lineHeight: 1,
+                        }}
+                        aria-label="Eliminar"
+                      >
+                        ×
+                      </button>
+                    )
+                  )}
+                </span>
+              </div>
+            )
+          })
         )}
       </div>
 
-      {/* Footer */}
+      {/* Footer total */}
       {transactions.length > 0 && (
-        <div className="font-receipt" style={{
-          borderTop: '1px dashed rgba(0,0,0,0.1)',
-          padding: '14px 20px',
+        <div style={{
+          borderTop: '1px solid var(--line)',
+          padding: '18px 24px 22px',
           display: 'flex',
+          alignItems: 'baseline',
           justifyContent: 'space-between',
-          fontSize: '12px',
-          color: 'var(--text-2)',
         }}>
-          <span>TOTAL GASTADO</span>
-          <span style={{ fontWeight: '700', color: 'var(--text)' }}>{formatEuro(totalGastado)}</span>
+          <span style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '10px',
+            fontWeight: 500,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            color: 'var(--text-3)',
+          }}>
+            total gastado
+          </span>
+          <span style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '28px',
+            fontWeight: 700,
+            lineHeight: 1,
+            color: 'var(--text)',
+            fontVariantNumeric: 'tabular-nums',
+            letterSpacing: '-0.02em',
+          }}>
+            <span style={{ color: 'var(--text-3)', fontWeight: 400, marginRight: '2px' }}>€</span>
+            {totalGastado.toFixed(2)}
+          </span>
         </div>
       )}
     </div>
@@ -780,7 +879,7 @@ function SettingsView({ currentUser, otherUser, onBack, onLogout, debugAmount, d
           <p style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px' }}>
             App
           </p>
-          <p style={{ fontSize: '13px', color: 'var(--text-2)' }}>CashBros v0.3.1</p>
+          <p style={{ fontSize: '13px', color: 'var(--text-2)' }}>CashBros v0.3.2</p>
         </div>
 
         {/* Logout */}
@@ -852,15 +951,17 @@ export default function Home({ currentUser, otherUser, onLogout }: HomeProps) {
       }}>
         <div style={{
           position: 'absolute',
-          inset: 0,
+          left: 0,
+          right: 0,
+          top: isSub ? 'calc(-100% + var(--nav-h))' : '0',
+          height: 'calc(200% - var(--nav-h))',
           display: 'flex',
           flexDirection: 'column',
-          transform: isSub ? 'translateY(-50%)' : 'translateY(0)',
-          transition: 'transform 0.55s cubic-bezier(0.2, 0.85, 0.25, 1)',
-          willChange: 'transform',
+          transition: 'top 0.55s cubic-bezier(0.2, 0.85, 0.25, 1)',
+          willChange: 'top',
         }}>
-          {/* Panel 1 — rope (full content height) */}
-          <div style={{ height: '100%', flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
+          {/* Panel 1 — rope (viewport minus nav) */}
+          <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
             <RopeView
               currentUser={currentUser}
               otherUser={otherUser}
@@ -871,14 +972,14 @@ export default function Home({ currentUser, otherUser, onLogout }: HomeProps) {
           </div>
 
           {/* Nav — travels between bottom (home) and top (sub) */}
-          <div style={{ flexShrink: 0 }}>
+          <div style={{ height: 'var(--nav-h)', flexShrink: 0 }}>
             <NavBar active={view} onNavigate={navigate} />
           </div>
 
-          {/* Panel 2 — subview (content height minus nav) */}
+          {/* Panel 2 — subview (viewport minus nav) */}
           <div style={{
-            height: 'calc(100% - var(--nav-h))',
-            flexShrink: 0,
+            flex: 1,
+            minHeight: 0,
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
@@ -888,6 +989,7 @@ export default function Home({ currentUser, otherUser, onLogout }: HomeProps) {
                 transactions={transactions}
                 currentUser={currentUser}
                 user1={user1}
+                user2={user2}
                 onBack={() => setView('home')}
               />
             )}
