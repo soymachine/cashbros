@@ -23,9 +23,6 @@ const CATEGORIES = [
   { value: 'otro',            label: '❓ Otro' },
 ]
 
-function formatEuro(n: number) {
-  return `€${n.toFixed(2)}`
-}
 function formatDate(d: Date) {
   return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', '')
 }
@@ -879,7 +876,7 @@ function SettingsView({ currentUser, otherUser, onBack, onLogout, debugAmount, d
           <p style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px' }}>
             App
           </p>
-          <p style={{ fontSize: '13px', color: 'var(--text-2)' }}>CashBros v0.3.2</p>
+          <p style={{ fontSize: '13px', color: 'var(--text-2)' }}>CashBros v0.3.3</p>
         </div>
 
         {/* Logout */}
